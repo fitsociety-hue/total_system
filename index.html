@@ -1,0 +1,3082 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAMS v4.1 — 강동어울림복지관 스마트 실적관리 통합시스템</title>
+<meta name="description" content="강동어울림복지관 사업 실적 통합관리 시스템. 출석체크, 건수입력, 일일업무일지, 실적관리, 보고서 생성.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css" type="text/css"/>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<style>
+/* ============================================ */
+/* SAMS v4.1 Design System - Glassmorphism      */
+/* ============================================ */
+:root {
+  --primary: #1E4D8C;
+  --primary-light: #2E75B6;
+  --primary-dark: #143763;
+  --glass-bg: rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.5);
+  --glass-shadow: 0 8px 32px rgba(0,87,255,0.10);
+  --glass-blur: blur(20px);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --text-main: #1A1C1E;
+  --text-secondary: #4A5568;
+  --text-muted: #8895A7;
+  --bg-gradient: linear-gradient(135deg, #e8f0fe 0%, #dbeafe 40%, #f0f9ff 100%);
+  --team-blue: #2563EB;
+  --team-green: #059669;
+  --team-orange: #D97706;
+  --team-red: #DC2626;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;scroll-behavior:smooth;}
+body{
+  font-family:'Paperlogy','Pretendard','Noto Sans KR',sans-serif;
+  color:var(--text-main);
+  background:var(--bg-gradient);
+  min-height:100vh;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(30,77,140,0.2);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(30,77,140,0.4);}
+
+/* Glass Card */
+.glass{
+  background:var(--glass-bg);
+  backdrop-filter:var(--glass-blur);
+  -webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow);
+}
+.glass-strong{
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+}
+
+/* Layout */
+.app-layout{display:flex;min-height:100vh;}
+.sidebar{
+  width:var(--sidebar-width);
+  height:100vh;
+  position:fixed;
+  left:0;top:0;
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-right:1px solid rgba(255,255,255,0.6);
+  box-shadow:4px 0 24px rgba(0,87,255,0.06);
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  transition:var(--transition);
+  overflow-y:auto;
+}
+.sidebar-brand{
+  padding:20px 24px;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+  flex-shrink:0;
+}
+.sidebar-brand h2{
+  font-size:1.1rem;
+  font-weight:700;
+  color:var(--primary);
+  margin-bottom:2px;
+}
+.sidebar-brand small{
+  font-size:0.72rem;
+  color:var(--text-muted);
+  font-weight:500;
+}
+.sidebar-nav{
+  flex:1;
+  padding:12px 10px;
+  overflow-y:auto;
+}
+.sidebar-nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 16px;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  font-size:0.88rem;
+  font-weight:500;
+  color:var(--text-secondary);
+  transition:var(--transition);
+  margin-bottom:2px;
+  white-space:nowrap;
+  user-select:none;
+}
+.sidebar-nav-item:hover{
+  background:rgba(37,99,235,0.08);
+  color:var(--primary);
+}
+.sidebar-nav-item.active{
+  background:linear-gradient(135deg,rgba(37,99,235,0.12),rgba(37,99,235,0.06));
+  color:var(--primary);
+  font-weight:600;
+  box-shadow:0 2px 8px rgba(37,99,235,0.08);
+}
+.sidebar-nav-item .nav-icon{font-size:1.15rem;width:24px;text-align:center;}
+.sidebar-nav-item .nav-badge{
+  margin-left:auto;
+  background:var(--danger);
+  color:#fff;
+  font-size:0.68rem;
+  padding:1px 7px;
+  border-radius:20px;
+  font-weight:600;
+}
+
+/* Main content */
+.main-content{
+  margin-left:var(--sidebar-width);
+  flex:1;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.header{
+  height:var(--header-height);
+  background:rgba(255,255,255,0.82);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.5);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 28px;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.header-left{display:flex;align-items:center;gap:12px;}
+.header-left h1{font-size:1.1rem;font-weight:600;color:var(--text-main);}
+.header-right{display:flex;align-items:center;gap:16px;}
+.header-user{display:flex;align-items:center;gap:8px;font-size:0.88rem;}
+.header-user .name{font-weight:600;}
+.header-user .info{color:var(--text-muted);font-size:0.78rem;}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:0.72rem;
+  font-weight:600;
+  color:#fff;
+}
+.badge-team{background:var(--team-blue);}
+.badge-leader{background:var(--team-green);}
+.badge-director{background:var(--team-orange);}
+.badge-admin{background:var(--team-red);}
+.page-content{padding:24px 28px;flex:1;}
+
+/* Buttons */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:10px 20px;
+  border-radius:var(--radius-sm);
+  font-size:0.88rem;
+  font-weight:600;
+  border:none;
+  cursor:pointer;
+  transition:var(--transition);
+  font-family:inherit;
+  white-space:nowrap;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  color:#fff;
+  box-shadow:0 4px 14px rgba(30,77,140,0.25);
+}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(30,77,140,0.35);transform:translateY(-1px);}
+.btn-secondary{
+  background:rgba(30,77,140,0.08);
+  color:var(--primary);
+  border:1px solid rgba(30,77,140,0.15);
+}
+.btn-secondary:hover{background:rgba(30,77,140,0.14);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-warning{background:var(--warning);color:#fff;}
+.btn-sm{padding:6px 14px;font-size:0.8rem;}
+.btn-lg{padding:14px 28px;font-size:1rem;}
+.btn-icon{padding:8px;border-radius:var(--radius-xs);background:transparent;color:var(--text-secondary);}
+.btn-icon:hover{background:rgba(0,0,0,0.05);}
+
+/* Forms */
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;}
+.form-input,.form-select,.form-textarea{
+  width:100%;
+  padding:11px 14px;
+  border:1px solid rgba(0,0,0,0.1);
+  border-radius:var(--radius-xs);
+  font-size:0.92rem;
+  font-family:inherit;
+  transition:var(--transition);
+  background:rgba(255,255,255,0.7);
+  color:var(--text-main);
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(30,77,140,0.1);
+}
+.form-textarea{resize:vertical;min-height:80px;}
+
+/* Cards */
+.stat-card{
+  padding:20px;
+  border-radius:var(--radius);
+  background:var(--glass-bg);
+  backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow);
+  transition:var(--transition);
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,87,255,0.14);}
+.stat-card .stat-icon{font-size:1.8rem;margin-bottom:8px;}
+.stat-card .stat-value{font-size:1.6rem;font-weight:700;color:var(--primary);}
+.stat-card .stat-label{font-size:0.78rem;color:var(--text-muted);margin-top:2px;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;font-size:0.88rem;}
+thead{background:rgba(30,77,140,0.06);}
+th{padding:12px 14px;text-align:left;font-weight:600;color:var(--text-secondary);font-size:0.8rem;white-space:nowrap;}
+td{padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.04);}
+tr:hover td{background:rgba(37,99,235,0.03);}
+
+/* Toast */
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  padding:14px 20px;
+  border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:blur(10px);
+  box-shadow:0 8px 30px rgba(0,0,0,0.12);
+  font-size:0.88rem;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  animation:slideIn 0.3s ease;
+  max-width:380px;
+}
+.toast-success{border-left:4px solid var(--success);}
+.toast-error{border-left:4px solid var(--danger);}
+.toast-info{border-left:4px solid var(--info);}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;
+  animation:fadeIn 0.2s ease;
+}
+.modal{
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:0 24px 80px rgba(0,0,0,0.2);
+  max-width:560px;
+  width:90%;
+  max-height:85vh;
+  overflow-y:auto;
+  animation:scaleIn 0.25s ease;
+}
+.modal-header{
+  padding:20px 24px;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.modal-header h3{font-size:1.05rem;font-weight:700;}
+.modal-body{padding:24px;}
+.modal-footer{
+  padding:16px 24px;
+  border-top:1px solid rgba(0,0,0,0.06);
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tab{
+  padding:8px 18px;
+  border-radius:var(--radius-xs);
+  font-size:0.84rem;
+  font-weight:500;
+  cursor:pointer;
+  transition:var(--transition);
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--text-secondary);
+  font-family:inherit;
+}
+.tab:hover{background:rgba(30,77,140,0.06);}
+.tab.active{
+  background:var(--primary);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(30,77,140,0.2);
+}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{transform:scale(0.95);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* Login page */
+.login-container{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.login-card{
+  width:100%;
+  max-width:420px;
+  padding:40px 36px;
+  text-align:center;
+}
+.login-card .logo-area{margin-bottom:28px;}
+.login-card .logo-area h1{
+  font-size:1.6rem;
+  font-weight:800;
+  background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.login-card .logo-area p{font-size:0.82rem;color:var(--text-muted);margin-top:4px;}
+.login-card .version-badge{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  color:#fff;
+  font-size:0.7rem;
+  padding:3px 10px;
+  border-radius:20px;
+  font-weight:700;
+  margin-top:8px;
+}
+
+/* Loading */
+.spinner{
+  width:32px;height:32px;
+  border:3px solid rgba(30,77,140,0.15);
+  border-top-color:var(--primary);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:20px auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+.mobile-tabbar{display:none;}
+.hamburger{display:none;cursor:pointer;font-size:1.4rem;background:none;border:none;color:var(--text-main);}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);width:280px;}
+  .sidebar.open{transform:translateX(0);}
+  .main-content{margin-left:0;}
+  .hamburger{display:block;}
+  .mobile-tabbar{
+    display:flex;
+    position:fixed;
+    bottom:0;left:0;right:0;
+    height:60px;
+    background:rgba(255,255,255,0.95);
+    backdrop-filter:blur(20px);
+    border-top:1px solid rgba(0,0,0,0.06);
+    z-index:100;
+    justify-content:space-around;
+    align-items:center;
+    padding:0 4px;
+  }
+  .mobile-tab{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    font-size:0.62rem;
+    color:var(--text-muted);
+    cursor:pointer;
+    padding:4px 6px;
+    border-radius:8px;
+    transition:var(--transition);
+    background:none;border:none;font-family:inherit;
+  }
+  .mobile-tab.active{color:var(--primary);}
+  .mobile-tab .tab-icon{font-size:1.2rem;}
+  .page-content{padding:16px;padding-bottom:80px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+}
+
+/* Print */
+@media print{
+  .sidebar,.header,.mobile-tabbar,.btn-area,.no-print{display:none!important;}
+  .main-content{margin-left:0!important;}
+  .daily-log-print{display:block!important;}
+  @page{size:A4 portrait;margin:15mm;}
+  body{font-size:9pt;font-family:'맑은 고딕','Paperlogy',sans-serif;background:#fff!important;}
+  .glass,.stat-card{background:#fff!important;backdrop-filter:none!important;box-shadow:none!important;border:1px solid #ddd!important;}
+  table,th,td{border:1px solid #333!important;}
+  .page-content{padding:0!important;}
+}
+
+/* Theme colors for roles */
+.theme-team .sidebar-nav-item.active{color:var(--team-blue);background:linear-gradient(135deg,rgba(37,99,235,0.12),rgba(37,99,235,0.04));}
+.theme-leader .sidebar-nav-item.active{color:var(--team-green);background:linear-gradient(135deg,rgba(5,150,105,0.12),rgba(5,150,105,0.04));}
+.theme-director .sidebar-nav-item.active{color:var(--team-orange);background:linear-gradient(135deg,rgba(217,119,6,0.12),rgba(217,119,6,0.04));}
+.theme-admin .sidebar-nav-item.active{color:var(--team-red);background:linear-gradient(135deg,rgba(220,38,38,0.12),rgba(220,38,38,0.04));}
+
+.theme-team .btn-primary{background:linear-gradient(135deg,var(--team-blue),#3B82F6);}
+.theme-leader .btn-primary{background:linear-gradient(135deg,var(--team-green),#10B981);}
+.theme-director .btn-primary{background:linear-gradient(135deg,var(--team-orange),#F59E0B);}
+.theme-admin .btn-primary{background:linear-gradient(135deg,var(--team-red),#F87171);}
+
+/* Empty state */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:12px;opacity:0.5;}
+.empty-state p{font-size:0.92rem;}
+
+/* Attendance status pills */
+.status-pill{
+  display:inline-flex;align-items:center;
+  padding:4px 10px;border-radius:20px;
+  font-size:0.75rem;font-weight:600;
+}
+.status-출석{background:rgba(16,185,129,0.12);color:#059669;}
+.status-결석{background:rgba(239,68,68,0.12);color:#DC2626;}
+.status-조퇴{background:rgba(245,158,11,0.12);color:#D97706;}
+.status-외출{background:rgba(59,130,246,0.12);color:#2563EB;}
+.status-공결{background:rgba(139,92,246,0.12);color:#7C3AED;}
+
+/* Record type badges */
+.rtype-attendance{background:rgba(37,99,235,0.12);color:#2563EB;padding:3px 8px;border-radius:12px;font-size:0.72rem;font-weight:600;}
+.rtype-count{background:rgba(217,119,6,0.12);color:#D97706;padding:3px 8px;border-radius:12px;font-size:0.72rem;font-weight:600;}
+
+/* Section */
+.section-title{font-size:1.05rem;font-weight:700;margin-bottom:16px;color:var(--text-main);}
+.section-subtitle{font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;}
+
+/* Alert box */
+.alert-box{
+  padding:14px 18px;
+  border-radius:var(--radius-sm);
+  font-size:0.85rem;
+  margin-bottom:16px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.alert-info{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#1E40AF;}
+.alert-warning{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#92400E;}
+.alert-success{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#065F46;}
+
+/* Confirm dialog */
+.confirm-dialog .modal{max-width:400px;}
+.confirm-dialog .modal-body{text-align:center;padding:32px 24px;}
+.confirm-dialog .confirm-icon{font-size:2.5rem;margin-bottom:12px;}
+.confirm-dialog .confirm-msg{font-size:0.95rem;color:var(--text-secondary);}
+
+/* Misc */
+.flex{display:flex;}.flex-wrap{flex-wrap:wrap;}.items-center{align-items:center;}
+.justify-between{justify-content:space-between;}.gap-2{gap:8px;}.gap-3{gap:12px;}.gap-4{gap:16px;}
+.mb-2{margin-bottom:8px;}.mb-3{margin-bottom:12px;}.mb-4{margin-bottom:16px;}.mb-6{margin-bottom:24px;}
+.mt-2{margin-top:8px;}.mt-4{margin-top:16px;}
+.text-center{text-align:center;}.text-right{text-align:right;}.text-sm{font-size:0.82rem;}
+.w-full{width:100%;}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+/* ================================================ */
+/* SAMS v4.1 — 강동어울림복지관 스마트 실적관리 시스템 */
+/* ================================================ */
+const { useState, useEffect, useRef, useCallback, useMemo, createContext, useContext } = React;
+const { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
+/* ─── Constants ─── */
+const GAS_URL = 'https://script.google.com/a/macros/gde.or.kr/s/AKfycbwT55TbJMctPaliOMshn54m5khOz_x4qVjVSL1lSH6-FFWFJakxWft7u7qre9vNWtlH/exec';
+const TEAMS = ['지역연계팀','맞춤지원팀','건강문화팀','성장지원팀','전략기획팀','미래경영팀'];
+const POSITIONS = ['팀원','팀장','국장','관장'];
+const DAYS_KR = ['일','월','화','수','목','금','토'];
+const ATTENDANCE_STATUS = ['출석','결석','조퇴','외출','공결_병결','공결_경조'];
+const SESSION_HOURS = 8;
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 30;
+
+/* ─── Utility Functions ─── */
+const uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:r&0x3|0x8).toString(16)});
+const now = () => new Date().toISOString();
+const today = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const getDayOfWeek = (dateStr) => {const d=new Date(dateStr);return DAYS_KR[d.getDay()]};
+const fmtDate = (dateStr) => {if(!dateStr)return'';const d=new Date(dateStr);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const getMonth = (dateStr) => dateStr?.substring(0,7)||'';
+const getYear = (dateStr) => dateStr?.substring(0,4)||'';
+
+/* PIN Handling — String only, preserve leading zeros */
+const formatPin = (val) => String(val).padStart(4,'0');
+const validatePin = (val) => /^[0-9]{4}$/.test(val);
+const comparePin = (stored, input) => stored === formatPin(input);
+const generatePin = () => formatPin(Math.floor(Math.random()*10000));
+
+/* localStorage helpers */
+const LS = {
+  get: (key) => { try{return JSON.parse(localStorage.getItem(key))}catch{return null} },
+  set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+  remove: (key) => localStorage.removeItem(key),
+};
+const getStaff = () => LS.get('sams_staff') || [];
+const setStaff = (d) => LS.set('sams_staff', d);
+const getSession = () => LS.get('sams_session');
+const setSession = (d) => LS.set('sams_session', d);
+const clearSession = () => LS.remove('sams_session');
+const getUsers = () => LS.get('sams_users') || [];
+const setUsers = (d) => LS.set('sams_users', d);
+const getPrograms = () => LS.get('sams_programs') || [];
+const setPrograms = (d) => LS.set('sams_programs', d);
+const getAttendance = () => LS.get('sams_attendance') || [];
+const setAttendanceLS = (d) => LS.set('sams_attendance', d);
+const getCountRecords = () => LS.get('sams_count_records') || [];
+const setCountRecords = (d) => LS.set('sams_count_records', d);
+const getDailyLogs = () => LS.get('sams_daily_logs') || [];
+const setDailyLogs = (d) => LS.set('sams_daily_logs', d);
+const getMonthlySummary = () => LS.get('sams_monthly_summary') || [];
+const setMonthlySummary = (d) => LS.set('sams_monthly_summary', d);
+const getSettings = () => LS.get('sams_settings') || {gasUrl:GAS_URL,logDeadline:'18:00',showAlert:true};
+const setSettingsLS = (d) => LS.set('sams_settings', d);
+
+/* Check session validity */
+const isSessionValid = (session) => {
+  if(!session) return false;
+  return new Date(session.expiresAt) > new Date();
+};
+
+/* GAS API call */
+const callGAS = async (action, data={}) => {
+  try {
+    const settings = getSettings();
+    const url = settings.gasUrl || GAS_URL;
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action,...data}),
+    });
+    return await res.json();
+  } catch(e) {
+    console.error('GAS Error:', e);
+    return {success:false, error:e.message};
+  }
+};
+
+/* ─── Toast Context ─── */
+const ToastContext = createContext();
+function ToastProvider({children}) {
+  const [toasts, setToasts] = useState([]);
+  const addToast = useCallback((msg, type='info') => {
+    const id = uuid();
+    setToasts(prev=>[...prev,{id,msg,type}]);
+    setTimeout(()=>setToasts(prev=>prev.filter(t=>t.id!==id)),3500);
+  },[]);
+  return (
+    <ToastContext.Provider value={{addToast}}>
+      {children}
+      <div className="toast-container">
+        {toasts.map(t=>(
+          <div key={t.id} className={`toast toast-${t.type}`}>
+            <span>{t.type==='success'?'✅':t.type==='error'?'❌':'ℹ️'}</span>
+            <span>{t.msg}</span>
+          </div>
+        ))}
+      </div>
+    </ToastContext.Provider>
+  );
+}
+const useToast = () => useContext(ToastContext);
+
+/* ─── Confirm Dialog ─── */
+function ConfirmDialog({show, msg, onConfirm, onCancel, icon='⚠️'}) {
+  if(!show) return null;
+  return (
+    <div className="modal-overlay confirm-dialog" onClick={onCancel}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-body">
+          <div className="confirm-icon">{icon}</div>
+          <div className="confirm-msg">{msg}</div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onCancel}>취소</button>
+          <button className="btn btn-primary" onClick={onConfirm}>확인</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* LOGIN PAGE                                   */
+/* ============================================ */
+function LoginPage({onLogin, onGoRegister}) {
+  const [name, setName] = useState('');
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  const [locked, setLocked] = useState(false);
+  const [lockTime, setLockTime] = useState(null);
+  const {addToast} = useToast();
+
+  useEffect(() => {
+    const lockData = LS.get('sams_login_lock');
+    if(lockData && new Date(lockData.until) > new Date()) {
+      setLocked(true);
+      setLockTime(lockData.until);
+      const timer = setInterval(()=>{
+        if(new Date(lockData.until)<=new Date()){setLocked(false);setLockTime(null);LS.remove('sams_login_lock');clearInterval(timer);}
+      },1000);
+      return()=>clearInterval(timer);
+    }
+  },[]);
+
+  const handleLogin = () => {
+    setError('');
+    if(!name.trim()||!pin.trim()){setError('이름과 비밀번호를 입력하세요.');return;}
+    if(!validatePin(pin)){setError('비밀번호는 숫자 4자리입니다.');return;}
+    if(locked){setError('로그인이 잠겨있습니다. 잠시 후 다시 시도하세요.');return;}
+
+    const staff = getStaff();
+    const user = staff.find(s=>s.name===name.trim()&&s.status==='재직중');
+    if(!user){
+      handleFailure();
+      setError('등록되지 않은 이름이거나 재직 상태가 아닙니다.');
+      return;
+    }
+    if(!comparePin(user.pin, pin)){
+      handleFailure();
+      setError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    // Success
+    LS.remove('sams_login_attempts');
+    const expiresAt = new Date(Date.now()+SESSION_HOURS*3600000).toISOString();
+    const session = {
+      staffId:user.id, name:user.name, teamName:user.teamName,
+      position:user.position, loginAt:now(), expiresAt
+    };
+    setSession(session);
+    // Update lastLoginAt
+    const updated = staff.map(s=>s.id===user.id?{...s,lastLoginAt:now()}:s);
+    setStaff(updated);
+    addToast(`${user.name}님 환영합니다!`,'success');
+    onLogin(session);
+  };
+
+  const handleFailure = () => {
+    const attempts = (LS.get('sams_login_attempts')||0)+1;
+    LS.set('sams_login_attempts', attempts);
+    if(attempts>=MAX_LOGIN_ATTEMPTS){
+      const until = new Date(Date.now()+LOCKOUT_MINUTES*60000).toISOString();
+      LS.set('sams_login_lock',{until});
+      setLocked(true);
+      setLockTime(until);
+      setError(`${MAX_LOGIN_ATTEMPTS}회 실패. ${LOCKOUT_MINUTES}분간 잠금됩니다.`);
+    }
+  };
+
+  const getRemainingLock = () => {
+    if(!lockTime) return '';
+    const diff = Math.max(0, new Date(lockTime)-new Date());
+    const min = Math.floor(diff/60000);
+    const sec = Math.floor((diff%60000)/1000);
+    return `${min}분 ${sec}초 후 재시도 가능`;
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-card glass-strong">
+        <div className="logo-area">
+          <div style={{fontSize:'2.5rem',marginBottom:'8px'}}>🏛️</div>
+          <h1>SAMS</h1>
+          <p>강동어울림복지관</p>
+          <p>스마트 실적관리 통합시스템</p>
+          <div className="version-badge">v4.1</div>
+        </div>
+
+        {error && <div className="alert-box alert-warning" style={{textAlign:'left',marginBottom:'16px'}}>⚠️ {error}</div>}
+        {locked && <div className="alert-box alert-warning" style={{textAlign:'left',marginBottom:'16px'}}>🔒 {getRemainingLock()}</div>}
+
+        <div className="form-group">
+          <label className="form-label">이름</label>
+          <input className="form-input" type="text" placeholder="이름을 입력하세요" value={name} onChange={e=>setName(e.target.value)} disabled={locked} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
+        </div>
+        <div className="form-group">
+          <label className="form-label">비밀번호 (숫자 4자리)</label>
+          <input className="form-input" type="password" inputMode="numeric" maxLength={4} placeholder="●●●●" value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,''))} disabled={locked} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
+        </div>
+        <button className="btn btn-primary btn-lg w-full" style={{marginTop:'8px'}} onClick={handleLogin} disabled={locked}>
+          로그인
+        </button>
+        <div style={{marginTop:'20px'}}>
+          <button className="btn btn-secondary btn-sm" onClick={onGoRegister} style={{fontSize:'0.82rem'}}>
+            📝 직원 회원가입
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* REGISTER PAGE                                */
+/* ============================================ */
+function RegisterPage({onBack, onRegister}) {
+  const [form, setForm] = useState({name:'',teamName:'지역연계팀',position:'팀원',pin:'',pinConfirm:''});
+  const [error, setError] = useState('');
+  const {addToast} = useToast();
+
+  const handleChange = (key,val) => setForm(prev=>({...prev,[key]:val}));
+
+  const handleSubmit = () => {
+    setError('');
+    if(!form.name.trim()){setError('이름을 입력하세요.');return;}
+    if(!validatePin(form.pin)){setError('비밀번호는 숫자 4자리여야 합니다.');return;}
+    if(form.pin!==form.pinConfirm){setError('비밀번호가 일치하지 않습니다.');return;}
+
+    const staff = getStaff();
+    if(staff.find(s=>s.name===form.name.trim()&&s.status==='재직중')){
+      setError('이미 등록된 이름입니다.');return;
+    }
+
+    const newStaff = {
+      id:uuid(), name:form.name.trim(), teamName:form.teamName,
+      position:form.position, pin:formatPin(form.pin),
+      status:'재직중', createdAt:now(), lastLoginAt:null
+    };
+    setStaff([...staff, newStaff]);
+    addToast('회원가입이 완료되었습니다.','success');
+    onRegister();
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-card glass-strong" style={{maxWidth:'480px'}}>
+        <div className="logo-area">
+          <h1 style={{fontSize:'1.3rem'}}>📝 직원 회원가입</h1>
+          <p style={{fontSize:'0.82rem',color:'var(--text-muted)'}}>SAMS v4.1 강동어울림복지관</p>
+        </div>
+
+        {error && <div className="alert-box alert-warning" style={{textAlign:'left'}}>⚠️ {error}</div>}
+
+        <div className="form-group" style={{textAlign:'left'}}>
+          <label className="form-label">이름 *</label>
+          <input className="form-input" type="text" value={form.name} onChange={e=>handleChange('name',e.target.value)} placeholder="홍길동"/>
+        </div>
+        <div className="grid-2" style={{textAlign:'left'}}>
+          <div className="form-group">
+            <label className="form-label">소속 팀 *</label>
+            <select className="form-select" value={form.teamName} onChange={e=>handleChange('teamName',e.target.value)}>
+              {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">직위 *</label>
+            <select className="form-select" value={form.position} onChange={e=>handleChange('position',e.target.value)}>
+              {POSITIONS.map(p=><option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="grid-2" style={{textAlign:'left'}}>
+          <div className="form-group">
+            <label className="form-label">비밀번호 (숫자 4자리) *</label>
+            <input className="form-input" type="password" inputMode="numeric" maxLength={4} value={form.pin} onChange={e=>handleChange('pin',e.target.value.replace(/\D/g,''))} placeholder="●●●●"/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">비밀번호 확인 *</label>
+            <input className="form-input" type="password" inputMode="numeric" maxLength={4} value={form.pinConfirm} onChange={e=>handleChange('pinConfirm',e.target.value.replace(/\D/g,''))} placeholder="●●●●"/>
+          </div>
+        </div>
+        <div className="flex gap-2" style={{marginTop:'8px'}}>
+          <button className="btn btn-secondary" onClick={onBack}>← 뒤로</button>
+          <button className="btn btn-primary" onClick={handleSubmit} style={{flex:1}}>가입하기</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* SIDEBAR COMPONENT                            */
+/* ============================================ */
+function Sidebar({items, activeTab, onTabChange, position, isOpen, onClose}) {
+  const themeClass = position==='팀원'?'theme-team':position==='팀장'?'theme-leader':position==='국장'?'theme-director':'theme-admin';
+  return (
+    <div className={`sidebar ${themeClass} ${isOpen?'open':''}`}>
+      <div className="sidebar-brand">
+        <h2>🏛️ SAMS v4.1</h2>
+        <small>강동어울림복지관</small>
+      </div>
+      <nav className="sidebar-nav">
+        {items.map(item=>(
+          <div key={item.key} className={`sidebar-nav-item ${activeTab===item.key?'active':''}`}
+               onClick={()=>{onTabChange(item.key);onClose?.();}}>
+            <span className="nav-icon">{item.icon}</span>
+            <span>{item.label}</span>
+            {item.badge>0 && <span className="nav-badge">{item.badge}</span>}
+          </div>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* HEADER COMPONENT                             */
+/* ============================================ */
+function Header({session, onLogout, onMenuToggle, pageTitle}) {
+  const badgeClass = session.position==='팀원'?'badge-team':session.position==='팀장'?'badge-leader':session.position==='국장'?'badge-director':'badge-admin';
+  const posIcon = session.position==='팀원'?'👤':session.position==='팀장'?'👑':session.position==='국장'?'🏅':'🔑';
+  return (
+    <div className="header no-print">
+      <div className="header-left">
+        <button className="hamburger" onClick={onMenuToggle}>☰</button>
+        <h1>{pageTitle}</h1>
+      </div>
+      <div className="header-right">
+        <div className="header-user">
+          <span className="name">{session.name}님</span>
+          <span className="info">({session.teamName}/{session.position})</span>
+          <span className={`badge ${badgeClass}`}>{posIcon} {session.position}</span>
+        </div>
+        <button className="btn btn-sm btn-secondary" onClick={onLogout}>로그아웃</button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* MOBILE TAB BAR                               */
+/* ============================================ */
+function MobileTabBar({items, activeTab, onTabChange}) {
+  const visibleItems = items.slice(0,5);
+  return (
+    <div className="mobile-tabbar no-print">
+      {visibleItems.map(item=>(
+        <button key={item.key} className={`mobile-tab ${activeTab===item.key?'active':''}`} onClick={()=>onTabChange(item.key)}>
+          <span className="tab-icon">{item.icon}</span>
+          <span>{item.shortLabel||item.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ============================================ */
+/* TEAM MEMBER DASHBOARD (팀원)                  */
+/* ============================================ */
+function TeamMemberDashboard({session, onLogout}) {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const {addToast} = useToast();
+
+  const navItems = [
+    {key:'dashboard',icon:'🏠',label:'내 대시보드',shortLabel:'대시보드'},
+    {key:'attendance',icon:'✅',label:'출석체크',shortLabel:'출석'},
+    {key:'count',icon:'📝',label:'건수 입력',shortLabel:'건수'},
+    {key:'dailylog',icon:'📋',label:'일일업무일지',shortLabel:'일지'},
+    {key:'users',icon:'👥',label:'이용인 관리',shortLabel:'이용인'},
+    {key:'stats',icon:'📊',label:'내 실적',shortLabel:'실적'},
+    {key:'settings',icon:'⚙️',label:'내 설정',shortLabel:'설정'},
+  ];
+
+  const myPrograms = useMemo(()=>{
+    return getPrograms().filter(p=>p.staffId===session.staffId);
+  },[activeTab]);
+
+  const getPageTitle = () => navItems.find(n=>n.key===activeTab)?.label||'';
+
+  return (
+    <div className="app-layout theme-team">
+      <Sidebar items={navItems} activeTab={activeTab} onTabChange={setActiveTab} position="팀원" isOpen={sidebarOpen} onClose={()=>setSidebarOpen(false)}/>
+      <div className="main-content">
+        <Header session={session} onLogout={onLogout} onMenuToggle={()=>setSidebarOpen(!sidebarOpen)} pageTitle={getPageTitle()}/>
+        <div className="page-content">
+          {activeTab==='dashboard' && <MyDashboard session={session} onNavTo={setActiveTab}/>}
+          {activeTab==='attendance' && <AttendanceTab session={session}/>}
+          {activeTab==='count' && <CountInputTab session={session}/>}
+          {activeTab==='dailylog' && <DailyLogTab session={session}/>}
+          {activeTab==='users' && <UserManagementTab session={session}/>}
+          {activeTab==='stats' && <MyStatsTab session={session}/>}
+          {activeTab==='settings' && <SettingsTab session={session}/>}
+        </div>
+      </div>
+      <MobileTabBar items={navItems} activeTab={activeTab} onTabChange={setActiveTab}/>
+    </div>
+  );
+}
+
+/* ─── My Dashboard ─── */
+function MyDashboard({session, onNavTo}) {
+  const programs = getPrograms().filter(p=>p.staffId===session.staffId);
+  const todayStr = today();
+  const attendance = getAttendance().filter(a=>a.staffId===session.staffId && a.date===todayStr);
+  const countRecords = getCountRecords().filter(c=>c.staffId===session.staffId && c.date===todayStr);
+  const attProgs = programs.filter(p=>p.recordType==='attendance');
+  const countProgs = programs.filter(p=>p.recordType==='count');
+
+  const monthStr = getMonth(todayStr);
+  const monthAtt = getAttendance().filter(a=>a.staffId===session.staffId && getMonth(a.date)===monthStr);
+  const monthCount = getCountRecords().filter(c=>c.staffId===session.staffId && getMonth(c.date)===monthStr);
+
+  const todayCountProgsInputted = countProgs.filter(p=>countRecords.find(c=>c.programId===p.id));
+  const todayCountProgsNotInputted = countProgs.filter(p=>!countRecords.find(c=>c.programId===p.id));
+
+  // Monthly unique people
+  const monthlyPeople = new Set(monthAtt.filter(a=>a.status==='출석').map(a=>a.userId)).size + monthCount.reduce((s,c)=>s+(c.people||0),0);
+  const monthlyExtended = monthAtt.filter(a=>a.status==='출석').length + monthCount.reduce((s,c)=>s+(c.extendedPeople||c.count||0),0);
+
+  return (
+    <div>
+      <div className="section-title">📅 {session.name}님의 오늘 업무 현황 <span className="text-sm" style={{fontWeight:400,color:'var(--text-muted)'}}>{todayStr} ({getDayOfWeek(todayStr)})</span></div>
+
+      <div className="stat-grid">
+        <div className="stat-card"><div className="stat-icon">📂</div><div className="stat-value">{programs.length}</div><div className="stat-label">담당 프로그램 (출석 {attProgs.length} / 건수 {countProgs.length})</div></div>
+        <div className="stat-card"><div className="stat-icon">✅</div><div className="stat-value">{attendance.filter(a=>a.status==='출석').length}명</div><div className="stat-label">오늘 출석 현황</div></div>
+        <div className="stat-card"><div className="stat-icon">📝</div><div className="stat-value">{todayCountProgsInputted.length}건</div><div className="stat-label">오늘 건수 입력 ({todayCountProgsNotInputted.length}건 미입력)</div></div>
+        <div className="stat-card"><div className="stat-icon">👤</div><div className="stat-value">{monthlyPeople}</div><div className="stat-label">이번달 실인원</div></div>
+        <div className="stat-card"><div className="stat-icon">👥</div><div className="stat-value">{monthlyExtended}</div><div className="stat-label">이번달 연인원</div></div>
+      </div>
+
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="section-title" style={{marginBottom:0}}>📋 담당 프로그램 목록</h3>
+      </div>
+
+      {programs.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">📂</div><p>등록된 프로그램이 없습니다.<br/>팀장에게 프로그램 배정을 요청하세요.</p></div>
+      ) : (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:'12px',marginBottom:'24px'}}>
+          {programs.map(p=>(
+            <div key={p.id} className="glass" style={{padding:'16px',borderRadius:'12px'}}>
+              <div className="flex justify-between items-center mb-2">
+                <strong style={{fontSize:'0.92rem'}}>{p.name}</strong>
+                <span className={p.recordType==='attendance'?'rtype-attendance':'rtype-count'}>
+                  {p.recordType==='attendance'?'🟦 출석형':'🟧 건수형'}
+                </span>
+              </div>
+              <div className="text-sm" style={{color:'var(--text-muted)'}}>{p.category} / {p.subCategory||'-'}</div>
+              <div className="text-sm" style={{color:'var(--text-muted)'}}>목표: {p.targetCount||0}건</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button className="btn btn-primary btn-lg" onClick={()=>onNavTo('dailylog')} style={{width:'100%',marginTop:'8px'}}>
+        📋 오늘 업무일지 작성하기
+      </button>
+    </div>
+  );
+}
+
+/* ─── Attendance Tab ─── */
+function AttendanceTab({session}) {
+  const [selDate, setSelDate] = useState(today());
+  const [selProgram, setSelProgram] = useState('');
+  const [records, setRecords] = useState({});
+  const {addToast} = useToast();
+
+  const programs = getPrograms().filter(p=>p.staffId===session.staffId && p.recordType==='attendance');
+  const users = getUsers().filter(u=>u.staffId===session.staffId && u.programId===selProgram && u.status==='활성');
+
+  useEffect(()=>{
+    if(!selProgram && programs.length>0) setSelProgram(programs[0].id);
+  },[]);
+
+  useEffect(()=>{
+    if(!selProgram) return;
+    const att = getAttendance().filter(a=>a.programId===selProgram && a.date===selDate);
+    const rec = {};
+    att.forEach(a=>{rec[a.userId]=a.status});
+    setRecords(rec);
+  },[selProgram,selDate]);
+
+  const handleStatusChange = (userId, status) => {
+    setRecords(prev=>({...prev,[userId]:status}));
+  };
+
+  const handleSelectAll = () => {
+    const rec = {};
+    users.forEach(u=>{rec[u.id]='출석'});
+    setRecords(rec);
+    addToast('전체 출석으로 선택되었습니다.','info');
+  };
+
+  const handleSave = () => {
+    let allAtt = getAttendance().filter(a=>!(a.programId===selProgram && a.date===selDate));
+    const prog = programs.find(p=>p.id===selProgram);
+    Object.entries(records).forEach(([userId, status])=>{
+      const user = users.find(u=>u.id===userId);
+      allAtt.push({
+        id:uuid(), programId:selProgram, programName:prog?.name||'',
+        staffId:session.staffId, userId, userName:user?.name||'',
+        date:selDate, status, synced:false, createdAt:now()
+      });
+    });
+    setAttendanceLS(allAtt);
+    addToast('출석이 저장되었습니다.','success');
+  };
+
+  const attCount = Object.values(records).filter(s=>s==='출석').length;
+  const absCount = Object.values(records).filter(s=>s==='결석').length;
+  const etcCount = Object.values(records).filter(s=>!['출석','결석'].includes(s)).length;
+
+  return (
+    <div>
+      <div className="section-title">✅ 출석체크</div>
+      <div className="glass" style={{padding:'20px',marginBottom:'20px'}}>
+        <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label">날짜 선택</label>
+            <input className="form-input" type="date" value={selDate} onChange={e=>setSelDate(e.target.value)}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">프로그램 선택 (출석형)</label>
+            <select className="form-select" value={selProgram} onChange={e=>setSelProgram(e.target.value)}>
+              {programs.length===0 && <option value="">출석형 프로그램 없음</option>}
+              {programs.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {selProgram && (
+        <>
+          <div className="stat-grid" style={{gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))'}}>
+            <div className="stat-card"><div className="stat-value" style={{color:'var(--success)'}}>{attCount}</div><div className="stat-label">출석</div></div>
+            <div className="stat-card"><div className="stat-value" style={{color:'var(--danger)'}}>{absCount}</div><div className="stat-label">결석</div></div>
+            <div className="stat-card"><div className="stat-value" style={{color:'var(--warning)'}}>{etcCount}</div><div className="stat-label">기타</div></div>
+            <div className="stat-card"><div className="stat-value">{users.length}</div><div className="stat-label">전체 인원</div></div>
+          </div>
+
+          <div className="glass" style={{padding:'20px'}}>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm" style={{color:'var(--text-muted)'}}>이용인 목록 ({users.length}명)</span>
+              <button className="btn btn-sm btn-success" onClick={handleSelectAll}>✅ 전체출석</button>
+            </div>
+
+            {users.length===0 ? (
+              <div className="empty-state"><div className="empty-icon">👥</div><p>등록된 이용인이 없습니다.</p></div>
+            ) : (
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>이름</th>{ATTENDANCE_STATUS.map(s=><th key={s} style={{textAlign:'center',fontSize:'0.75rem'}}>{s.replace('_','/')}</th>)}</tr></thead>
+                  <tbody>
+                    {users.map(u=>(
+                      <tr key={u.id}>
+                        <td style={{fontWeight:600}}>{u.name}</td>
+                        {ATTENDANCE_STATUS.map(s=>(
+                          <td key={s} style={{textAlign:'center'}}>
+                            <input type="radio" name={`att_${u.id}`} checked={records[u.id]===s} onChange={()=>handleStatusChange(u.id,s)}/>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-between mt-4">
+              <button className="btn btn-primary" onClick={handleSave}>💾 저장</button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── Count Input Tab ─── */
+function CountInputTab({session}) {
+  const [selDate, setSelDate] = useState(today());
+  const [selProgram, setSelProgram] = useState('');
+  const [form, setForm] = useState({count:'',people:'',extendedPeople:'',note:''});
+  const [editId, setEditId] = useState(null);
+  const {addToast} = useToast();
+
+  const programs = getPrograms().filter(p=>p.staffId===session.staffId && p.recordType==='count');
+  const dayRecords = getCountRecords().filter(c=>c.staffId===session.staffId && c.date===selDate);
+
+  useEffect(()=>{
+    if(!selProgram && programs.length>0) setSelProgram(programs[0].id);
+  },[]);
+
+  const resetForm = () => {setForm({count:'',people:'',extendedPeople:'',note:''});setEditId(null);};
+
+  const handleSave = () => {
+    if(!selProgram){addToast('프로그램을 선택하세요.','error');return;}
+    if(!form.count || Number(form.count)<=0){addToast('건수를 1 이상 입력하세요.','error');return;}
+
+    const prog = programs.find(p=>p.id===selProgram);
+    let all = getCountRecords();
+
+    if(editId) {
+      all = all.map(c=>c.id===editId?{...c,count:Number(form.count),people:form.people?Number(form.people):null,extendedPeople:form.extendedPeople?Number(form.extendedPeople):null,note:form.note,updatedAt:now()}:c);
+    } else {
+      all.push({
+        id:uuid(), programId:selProgram, programName:prog?.name||'',
+        staffId:session.staffId, date:selDate,
+        count:Number(form.count), people:form.people?Number(form.people):null,
+        extendedPeople:form.extendedPeople?Number(form.extendedPeople):null,
+        note:form.note, synced:false, createdAt:now()
+      });
+    }
+    setCountRecords(all);
+    addToast(editId?'수정되었습니다.':'저장되었습니다.','success');
+    resetForm();
+  };
+
+  const handleEdit = (rec) => {
+    setEditId(rec.id);
+    setSelProgram(rec.programId);
+    setForm({count:String(rec.count),people:rec.people!=null?String(rec.people):'',extendedPeople:rec.extendedPeople!=null?String(rec.extendedPeople):'',note:rec.note||''});
+  };
+
+  const handleDelete = (id) => {
+    setCountRecords(getCountRecords().filter(c=>c.id!==id));
+    addToast('삭제되었습니다.','success');
+  };
+
+  return (
+    <div>
+      <div className="section-title">📝 건수 입력</div>
+      <div className="alert-box alert-info">💡 고충처리함, 민원상담, 자문위원회 등 개별 출석 대신 건수로 실적을 관리하는 프로그램에 사용합니다. 실인원·연인원을 알 수 없는 경우 건수만 입력해도 됩니다.</div>
+
+      <div className="glass" style={{padding:'24px',marginBottom:'20px'}}>
+        <div className="grid-2 mb-4">
+          <div className="form-group">
+            <label className="form-label">날짜 선택</label>
+            <input className="form-input" type="date" value={selDate} onChange={e=>setSelDate(e.target.value)}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">프로그램 선택 (건수형)</label>
+            <select className="form-select" value={selProgram} onChange={e=>setSelProgram(e.target.value)}>
+              {programs.length===0 && <option value="">건수형 프로그램 없음</option>}
+              {programs.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="grid-2 mb-4" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+          <div className="form-group">
+            <label className="form-label">건수 *</label>
+            <input className="form-input" type="number" min="0" value={form.count} onChange={e=>setForm(f=>({...f,count:e.target.value}))} placeholder="건"/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">실인원 (선택)</label>
+            <input className="form-input" type="number" min="0" value={form.people} onChange={e=>setForm(f=>({...f,people:e.target.value}))} placeholder="명"/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">연인원 (선택)</label>
+            <input className="form-input" type="number" min="0" value={form.extendedPeople} onChange={e=>setForm(f=>({...f,extendedPeople:e.target.value}))} placeholder="명"/>
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">내용 요약 (선택)</label>
+          <textarea className="form-textarea" value={form.note} onChange={e=>setForm(f=>({...f,note:e.target.value}))} placeholder="예: 프로그램 시간 변경 요청 2건, 시설 불편 신고 1건" rows={2}/>
+        </div>
+        <div className="flex gap-2">
+          <button className="btn btn-primary" onClick={handleSave}>{editId?'✏️ 수정':'💾 저장'}</button>
+          {editId && <button className="btn btn-secondary" onClick={resetForm}>취소</button>}
+        </div>
+      </div>
+
+      <div className="section-title">{selDate} 입력 내역</div>
+      {dayRecords.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">📝</div><p>해당 날짜에 입력된 건수가 없습니다.</p></div>
+      ) : (
+        <div className="glass table-wrap">
+          <table>
+            <thead><tr><th>프로그램명</th><th>건수</th><th>실인원</th><th>연인원</th><th>내용 요약</th><th>액션</th></tr></thead>
+            <tbody>
+              {dayRecords.map(r=>(
+                <tr key={r.id}>
+                  <td><strong>{r.programName}</strong></td>
+                  <td>{r.count}건</td>
+                  <td>{r.people!=null?r.people+'명':'-'}</td>
+                  <td>{r.extendedPeople!=null?r.extendedPeople+'명':'-'}</td>
+                  <td style={{maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis'}}>{r.note||'-'}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button className="btn btn-sm btn-secondary" onClick={()=>handleEdit(r)}>✏️</button>
+                      <button className="btn btn-sm btn-danger" onClick={()=>handleDelete(r.id)}>🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Daily Log Tab ─── */
+function DailyLogTab({session}) {
+  const [mode, setMode] = useState('list'); // list, edit, view
+  const [selDate, setSelDate] = useState(today());
+  const [editLog, setEditLog] = useState(null);
+  const [viewLog, setViewLog] = useState(null);
+  const {addToast} = useToast();
+
+  const logs = getDailyLogs().filter(l=>l.staffId===session.staffId).sort((a,b)=>b.date.localeCompare(a.date));
+
+  const handleNewLog = (date) => {
+    setSelDate(date||today());
+    // Check if log exists for that date
+    const existing = getDailyLogs().find(l=>l.staffId===session.staffId && l.date===(date||today()));
+    if(existing){
+      setEditLog(existing);
+    } else {
+      // Auto generate performance summary
+      const perf = generatePerformanceSummary(session.staffId, date||today());
+      setEditLog({
+        id:uuid(), staffId:session.staffId, staffName:session.name,
+        teamName:session.teamName, date:date||today(),
+        dayOfWeek:getDayOfWeek(date||today()),
+        workItems:[{personName:session.name, content:''}],
+        supervision:'',
+        performanceSummary:perf,
+        status:'draft', createdAt:now(), updatedAt:now()
+      });
+    }
+    setMode('edit');
+  };
+
+  const handleView = (log) => {setViewLog(log);setMode('view');};
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="section-title" style={{marginBottom:0}}>📋 일일업무일지</div>
+        <button className="btn btn-primary" onClick={()=>handleNewLog()}>✏️ 오늘 일지 작성</button>
+      </div>
+
+      {mode==='list' && <DailyLogList logs={logs} onNew={handleNewLog} onView={handleView} onEdit={(l)=>{setEditLog(l);setMode('edit');}}/>}
+      {mode==='edit' && <DailyLogEditor log={editLog} session={session} onBack={()=>setMode('list')} onSave={()=>{setMode('list');addToast('일지가 저장되었습니다.','success');}}/>}
+      {mode==='view' && <DailyLogViewer log={viewLog} onBack={()=>setMode('list')}/>}
+    </div>
+  );
+}
+
+function generatePerformanceSummary(staffId, date) {
+  const programs = getPrograms().filter(p=>p.staffId===staffId);
+  const monthStr = getMonth(date);
+  const yearStr = getYear(date);
+  const allAtt = getAttendance();
+  const allCount = getCountRecords();
+
+  const progData = programs.map(prog=>{
+    let dayCount=0, dayPeople=0, dayExtended=0;
+    let monthCount=0, monthPeople=0, monthExtended=0;
+    let cumCount=0, cumPeople=0, cumExtended=0;
+
+    if(prog.recordType==='attendance'){
+      const dayAtt = allAtt.filter(a=>a.programId===prog.id && a.date===date && a.status==='출석');
+      dayCount = dayAtt.length;
+      dayPeople = new Set(dayAtt.map(a=>a.userId)).size;
+      dayExtended = dayAtt.length;
+
+      const monthAtt = allAtt.filter(a=>a.programId===prog.id && getMonth(a.date)===monthStr && a.status==='출석');
+      monthCount = monthAtt.length;
+      monthPeople = new Set(monthAtt.map(a=>a.userId)).size;
+      monthExtended = monthAtt.length;
+
+      const cumAtt = allAtt.filter(a=>a.programId===prog.id && getYear(a.date)===yearStr && a.status==='출석');
+      cumCount = cumAtt.length;
+      cumPeople = new Set(cumAtt.map(a=>a.userId)).size;
+      cumExtended = cumAtt.length;
+    } else {
+      const dayCR = allCount.filter(c=>c.programId===prog.id && c.date===date);
+      dayCount = dayCR.reduce((s,c)=>s+c.count,0);
+      dayPeople = dayCR.reduce((s,c)=>s+(c.people||c.count),0);
+      dayExtended = dayCR.reduce((s,c)=>s+(c.extendedPeople||c.count),0);
+
+      const monthCR = allCount.filter(c=>c.programId===prog.id && getMonth(c.date)===monthStr);
+      monthCount = monthCR.reduce((s,c)=>s+c.count,0);
+      monthPeople = monthCR.reduce((s,c)=>s+(c.people||c.count),0);
+      monthExtended = monthCR.reduce((s,c)=>s+(c.extendedPeople||c.count),0);
+
+      const cumCR = allCount.filter(c=>c.programId===prog.id && getYear(c.date)===yearStr);
+      cumCount = cumCR.reduce((s,c)=>s+c.count,0);
+      cumPeople = cumCR.reduce((s,c)=>s+(c.people||c.count),0);
+      cumExtended = cumCR.reduce((s,c)=>s+(c.extendedPeople||c.count),0);
+    }
+
+    const target = prog.targetCount || 0;
+    return {
+      programId:prog.id, programName:prog.name, category:prog.category||'',
+      recordType:prog.recordType, targetCount:target,
+      dayCount, dayPeople, dayExtended,
+      monthCount, monthPeople, monthExtended,
+      cumCount, cumPeople, cumExtended,
+      achieveRate: target>0 ? Math.round(cumCount/target*100) : 0,
+    };
+  });
+
+  return {
+    programs: progData,
+    totalDayCount: progData.reduce((s,p)=>s+p.dayCount,0),
+    totalMonthCount: progData.reduce((s,p)=>s+p.monthCount,0),
+    totalCumCount: progData.reduce((s,p)=>s+p.cumCount,0),
+  };
+}
+
+function DailyLogList({logs, onNew, onView, onEdit}) {
+  return (
+    <div>
+      {logs.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">📋</div><p>작성된 업무일지가 없습니다.</p></div>
+      ) : (
+        <div className="glass table-wrap">
+          <table>
+            <thead><tr><th>날짜</th><th>요일</th><th>상태</th><th>주요 업무 요약</th><th>액션</th></tr></thead>
+            <tbody>
+              {logs.map(l=>(
+                <tr key={l.id}>
+                  <td>{l.date}</td>
+                  <td>{l.dayOfWeek}</td>
+                  <td>{l.status==='submitted'?<span className="status-pill status-출석">✅ 제출</span>:<span className="status-pill status-조퇴">📝 임시저장</span>}</td>
+                  <td style={{maxWidth:'250px',overflow:'hidden',textOverflow:'ellipsis'}}>{l.workItems?.map(w=>w.content).filter(Boolean).join(', ')||'(내용 없음)'}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button className="btn btn-sm btn-secondary" onClick={()=>onView(l)}>보기</button>
+                      {l.status!=='submitted' && <button className="btn btn-sm btn-primary" onClick={()=>onEdit(l)}>편집</button>}
+                      <button className="btn btn-sm btn-secondary" onClick={()=>window.print()}>🖨️</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DailyLogEditor({log, session, onBack, onSave}) {
+  const [data, setData] = useState(log);
+  const {addToast} = useToast();
+
+  const updateWorkItem = (idx, field, val) => {
+    const items = [...data.workItems];
+    items[idx] = {...items[idx],[field]:val};
+    setData(d=>({...d,workItems:items}));
+  };
+
+  const addWorkItem = () => {
+    setData(d=>({...d,workItems:[...d.workItems,{personName:'',content:''}]}));
+  };
+
+  const removeWorkItem = (idx) => {
+    if(data.workItems.length<=1) return;
+    setData(d=>({...d,workItems:d.workItems.filter((_,i)=>i!==idx)}));
+  };
+
+  const handleSave = (status) => {
+    const updated = {...data, status, updatedAt:now()};
+    let allLogs = getDailyLogs().filter(l=>l.id!==data.id);
+    allLogs.push(updated);
+    setDailyLogs(allLogs);
+    onSave();
+  };
+
+  const refreshPerf = () => {
+    const perf = generatePerformanceSummary(session.staffId, data.date);
+    setData(d=>({...d,performanceSummary:perf}));
+    addToast('실적이 다시 집계되었습니다.','info');
+  };
+
+  const progs = data.performanceSummary?.programs || [];
+
+  return (
+    <div>
+      <button className="btn btn-secondary mb-4" onClick={onBack}>← 목록으로</button>
+
+      <div className="glass" style={{padding:'24px',marginBottom:'20px'}}>
+        <div className="text-center mb-4">
+          <h2 style={{fontSize:'1.2rem',fontWeight:700,color:'var(--primary)'}}>{data.teamName} 업무일지</h2>
+          <p className="text-sm" style={{color:'var(--text-muted)'}}>날짜: {data.date} ({data.dayOfWeek})</p>
+        </div>
+
+        {/* Performance Summary */}
+        <div className="flex justify-between items-center mb-3">
+          <h3 style={{fontSize:'0.95rem',fontWeight:700}}>📊 업무실적 자동 집계</h3>
+          <button className="btn btn-sm btn-secondary" onClick={refreshPerf}>🔄 재집계</button>
+        </div>
+
+        <div className="table-wrap mb-4">
+          <table>
+            <thead>
+              <tr><th>사업분류</th><th>사업명</th><th>유형</th><th>목표</th><th>일계</th><th>월계</th><th>누계</th><th>달성률</th></tr>
+            </thead>
+            <tbody>
+              {progs.length===0 ? (
+                <tr><td colSpan={8} className="text-center" style={{padding:'20px',color:'var(--text-muted)'}}>등록된 프로그램이 없습니다.</td></tr>
+              ) : progs.map(p=>(
+                <tr key={p.programId}>
+                  <td>{p.category||'-'}</td>
+                  <td><strong>{p.programName}</strong></td>
+                  <td><span className={p.recordType==='attendance'?'rtype-attendance':'rtype-count'}>{p.recordType==='attendance'?'출석':'건수'}</span></td>
+                  <td>{p.targetCount}</td>
+                  <td>{p.dayCount}</td>
+                  <td>{p.monthCount}</td>
+                  <td>{p.cumCount}</td>
+                  <td>{p.achieveRate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Work Items */}
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'12px'}}>📝 주요 업무 내용</h3>
+        {data.workItems.map((w,i)=>(
+          <div key={i} className="glass" style={{padding:'14px',marginBottom:'10px',borderRadius:'10px',background:'rgba(255,255,255,0.5)'}}>
+            <div className="flex justify-between items-center mb-2">
+              <div className="form-group" style={{flex:1,marginBottom:0,marginRight:'10px'}}>
+                <label className="form-label">담당자명</label>
+                <input className="form-input" value={w.personName} onChange={e=>updateWorkItem(i,'personName',e.target.value)} placeholder="이름"/>
+              </div>
+              {data.workItems.length>1 && <button className="btn btn-sm btn-icon" onClick={()=>removeWorkItem(i)} title="삭제">❌</button>}
+            </div>
+            <div className="form-group" style={{marginBottom:0}}>
+              <label className="form-label">업무 내용</label>
+              <textarea className="form-textarea" value={w.content} onChange={e=>updateWorkItem(i,'content',e.target.value)} placeholder="업무 내용을 입력하세요..." rows={3}/>
+            </div>
+          </div>
+        ))}
+        <button className="btn btn-sm btn-secondary mb-4" onClick={addWorkItem}>+ 담당자 추가</button>
+
+        {/* Supervision */}
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'12px'}}>🎓 슈퍼비전</h3>
+        <div className="form-group">
+          <textarea className="form-textarea" value={data.supervision} onChange={e=>setData(d=>({...d,supervision:e.target.value}))} placeholder="슈퍼비전 내용 (선택)" rows={3}/>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 mt-4">
+          <button className="btn btn-secondary" onClick={()=>handleSave('draft')}>📝 임시저장</button>
+          <button className="btn btn-primary" onClick={()=>handleSave('submitted')}>✅ 제출</button>
+          <button className="btn btn-secondary" onClick={()=>window.print()}>🖨️ 인쇄</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DailyLogViewer({log, onBack}) {
+  const progs = log.performanceSummary?.programs || [];
+  return (
+    <div>
+      <button className="btn btn-secondary mb-4 no-print" onClick={onBack}>← 목록으로</button>
+
+      <div className="glass daily-log-print" style={{padding:'24px'}}>
+        <div className="text-center mb-4">
+          <h2 style={{fontSize:'1.2rem',fontWeight:700,color:'var(--primary)'}}>{log.teamName} 업무일지</h2>
+          <p className="text-sm" style={{color:'var(--text-muted)'}}>날짜: {log.date} ({log.dayOfWeek})</p>
+        </div>
+
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'8px'}}>📊 업무실적</h3>
+        <div className="table-wrap mb-4">
+          <table>
+            <thead><tr><th>사업분류</th><th>사업명</th><th>목표</th><th>일계</th><th>월계</th><th>누계</th><th>달성률</th></tr></thead>
+            <tbody>
+              {progs.map(p=>(
+                <tr key={p.programId}><td>{p.category||'-'}</td><td>{p.programName}</td><td>{p.targetCount}</td><td>{p.dayCount}</td><td>{p.monthCount}</td><td>{p.cumCount}</td><td>{p.achieveRate}%</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'8px'}}>📝 주요 업무 내용</h3>
+        <div className="table-wrap mb-4">
+          <table>
+            <thead><tr><th>담당자</th><th>업무 내용</th></tr></thead>
+            <tbody>
+              {log.workItems?.map((w,i)=>(
+                <tr key={i}><td style={{fontWeight:600,width:'100px'}}>{w.personName}</td><td style={{whiteSpace:'pre-wrap'}}>{w.content||'(내용 없음)'}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {log.supervision && (
+          <>
+            <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'8px'}}>🎓 슈퍼비전</h3>
+            <div className="glass" style={{padding:'14px',background:'rgba(255,255,255,0.5)',borderRadius:'10px',marginBottom:'16px',whiteSpace:'pre-wrap'}}>{log.supervision}</div>
+          </>
+        )}
+
+        <div className="text-right text-sm" style={{color:'var(--text-muted)',marginTop:'20px'}}>
+          🏛️ 강동어울림복지관
+        </div>
+      </div>
+
+      <div className="flex gap-2 mt-4 no-print">
+        <button className="btn btn-primary" onClick={()=>window.print()}>🖨️ 인쇄/출력</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── User Management Tab ─── */
+function UserManagementTab({session}) {
+  const [users, setUsersState] = useState(getUsers().filter(u=>u.staffId===session.staffId));
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [selProgram, setSelProgram] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const {addToast} = useToast();
+
+  const programs = getPrograms().filter(p=>p.staffId===session.staffId);
+
+  useEffect(()=>{
+    if(!selProgram && programs.length>0) setSelProgram(programs[0].id);
+  },[]);
+
+  const filteredUsers = selProgram ? users.filter(u=>u.programId===selProgram) : users;
+
+  const handleSearch = async () => {
+    if(!newName.trim()){addToast('이름을 입력하세요.','error');return;}
+    try {
+      const result = await callGAS('searchUser',{name:newName.trim()});
+      if(result.success && result.users) {
+        setSearchResults(result.users);
+      } else {
+        setSearchResults([]);
+        addToast('검색 결과가 없습니다.','info');
+      }
+    } catch(e) {
+      addToast('검색 중 오류가 발생했습니다.','error');
+    }
+  };
+
+  const handleAddUser = (userData) => {
+    if(!selProgram){addToast('프로그램을 선택하세요.','error');return;}
+    const prog = programs.find(p=>p.id===selProgram);
+    const newUser = {
+      id:uuid(), name:userData?.name||newName.trim(),
+      staffId:session.staffId, programId:selProgram, programName:prog?.name||'',
+      status:'활성', birth:userData?.birth||'', phone:userData?.phone||'',
+      createdAt:now()
+    };
+    const allUsers = [...getUsers(), newUser];
+    setUsers(allUsers);
+    setUsersState(allUsers.filter(u=>u.staffId===session.staffId));
+    setShowAdd(false);
+    setNewName('');
+    setSearchResults([]);
+    addToast(`${newUser.name}님이 추가되었습니다.`,'success');
+  };
+
+  const handleDeleteUser = (id) => {
+    const allUsers = getUsers().filter(u=>u.id!==id);
+    setUsers(allUsers);
+    setUsersState(allUsers.filter(u=>u.staffId===session.staffId));
+    addToast('이용인이 삭제되었습니다.','success');
+  };
+
+  const handleStatusChange = (id, status) => {
+    const allUsers = getUsers().map(u=>u.id===id?{...u,status}:u);
+    setUsers(allUsers);
+    setUsersState(allUsers.filter(u=>u.staffId===session.staffId));
+    addToast(`상태가 "${status}"(으)로 변경되었습니다.`,'success');
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="section-title" style={{marginBottom:0}}>👥 이용인 관리</div>
+        <button className="btn btn-primary" onClick={()=>setShowAdd(true)}>+ 이용인 추가</button>
+      </div>
+
+      <div className="glass" style={{padding:'20px',marginBottom:'20px'}}>
+        <div className="form-group">
+          <label className="form-label">프로그램 선택</label>
+          <select className="form-select" value={selProgram} onChange={e=>setSelProgram(e.target.value)}>
+            <option value="">전체</option>
+            {programs.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {showAdd && (
+        <div className="modal-overlay" onClick={()=>setShowAdd(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>이용인 추가</h3>
+              <button className="btn btn-icon" onClick={()=>setShowAdd(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">프로그램</label>
+                <select className="form-select" value={selProgram} onChange={e=>setSelProgram(e.target.value)}>
+                  {programs.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">이름 검색</label>
+                <div className="flex gap-2">
+                  <input className="form-input" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="이름 입력" style={{flex:1}}/>
+                  <button className="btn btn-primary btn-sm" onClick={handleSearch}>🔍</button>
+                </div>
+              </div>
+              {searchResults.length>0 && (
+                <div style={{marginBottom:'12px'}}>
+                  <label className="form-label">검색 결과</label>
+                  {searchResults.map((r,i)=>(
+                    <div key={i} className="glass" style={{padding:'10px',marginBottom:'6px',borderRadius:'8px',cursor:'pointer',background:'rgba(255,255,255,0.5)'}} onClick={()=>handleAddUser(r)}>
+                      <strong>{r.name}</strong> <span className="text-sm" style={{color:'var(--text-muted)'}}>{r.birth||''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button className="btn btn-secondary w-full" onClick={()=>handleAddUser()}>직접 추가: {newName||'(이름 입력 필요)'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {filteredUsers.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">👥</div><p>등록된 이용인이 없습니다.</p></div>
+      ) : (
+        <div className="glass table-wrap">
+          <table>
+            <thead><tr><th>이름</th><th>프로그램</th><th>상태</th><th>등록일</th><th>액션</th></tr></thead>
+            <tbody>
+              {filteredUsers.map(u=>(
+                <tr key={u.id}>
+                  <td><strong>{u.name}</strong></td>
+                  <td>{u.programName}</td>
+                  <td><span className={`status-pill ${u.status==='활성'?'status-출석':'status-결석'}`}>{u.status}</span></td>
+                  <td className="text-sm">{u.createdAt?.substring(0,10)}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <select className="form-select" value={u.status} onChange={e=>handleStatusChange(u.id,e.target.value)} style={{width:'auto',padding:'4px 8px',fontSize:'0.78rem'}}>
+                        <option value="활성">활성</option>
+                        <option value="보류">보류</option>
+                        <option value="종결">종결</option>
+                      </select>
+                      <button className="btn btn-sm btn-danger" onClick={()=>handleDeleteUser(u.id)}>🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── My Stats Tab ─── */
+function MyStatsTab({session}) {
+  const [period, setPeriod] = useState('월별');
+  const periods = ['일별','주별','월별','분기별','상·하반기','연간'];
+
+  const programs = getPrograms().filter(p=>p.staffId===session.staffId);
+  const allAtt = getAttendance().filter(a=>a.staffId===session.staffId);
+  const allCount = getCountRecords().filter(c=>c.staffId===session.staffId);
+  const yearStr = String(new Date().getFullYear());
+
+  const progStats = programs.map(prog=>{
+    let cumCount=0, cumPeople=0, cumExtended=0;
+    if(prog.recordType==='attendance'){
+      const att = allAtt.filter(a=>a.programId===prog.id && getYear(a.date)===yearStr && a.status==='출석');
+      cumCount = att.length;
+      cumPeople = new Set(att.map(a=>a.userId)).size;
+      cumExtended = att.length;
+    } else {
+      const cr = allCount.filter(c=>c.programId===prog.id && getYear(c.date)===yearStr);
+      cumCount = cr.reduce((s,c)=>s+c.count,0);
+      cumPeople = cr.reduce((s,c)=>s+(c.people||c.count),0);
+      cumExtended = cr.reduce((s,c)=>s+(c.extendedPeople||c.count),0);
+    }
+    const target = prog.targetCount||0;
+    return { ...prog, cumCount, cumPeople, cumExtended, target, achieveRate: target>0 ? Math.round(cumCount/target*100) : 0 };
+  });
+
+  // Chart data by month
+  const monthlyData = [];
+  for(let m=1;m<=12;m++){
+    const ms = `${yearStr}-${String(m).padStart(2,'0')}`;
+    let count=0;
+    programs.forEach(p=>{
+      if(p.recordType==='attendance'){
+        count+=allAtt.filter(a=>a.programId===p.id && getMonth(a.date)===ms && a.status==='출석').length;
+      } else {
+        count+=allCount.filter(c=>c.programId===p.id && getMonth(c.date)===ms).reduce((s,c)=>s+c.count,0);
+      }
+    });
+    monthlyData.push({name:`${m}월`,건수:count});
+  }
+
+  return (
+    <div>
+      <div className="section-title">📊 내 실적</div>
+
+      <div className="tabs mb-4">
+        {periods.map(p=><button key={p} className={`tab ${period===p?'active':''}`} onClick={()=>setPeriod(p)}>{p}</button>)}
+      </div>
+
+      <div className="glass" style={{padding:'20px',marginBottom:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'12px'}}>월별 실적 추이 ({yearStr}년)</h3>
+        <div style={{width:'100%',height:260}}>
+          <ResponsiveContainer>
+            <BarChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
+              <XAxis dataKey="name" tick={{fontSize:12}}/>
+              <YAxis tick={{fontSize:12}}/>
+              <Tooltip/>
+              <Bar dataKey="건수" fill="var(--primary)" radius={[4,4,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>프로그램명</th><th>유형</th><th>목표</th><th>누계</th><th>달성률</th></tr></thead>
+          <tbody>
+            {progStats.map(p=>(
+              <tr key={p.id}>
+                <td><strong>{p.name}</strong></td>
+                <td><span className={p.recordType==='attendance'?'rtype-attendance':'rtype-count'}>{p.recordType==='attendance'?'출석형':'건수형'}</span></td>
+                <td>{p.target}</td>
+                <td>{p.cumCount}</td>
+                <td>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                    <div style={{flex:1,height:'6px',background:'rgba(0,0,0,0.06)',borderRadius:'4px',overflow:'hidden'}}>
+                      <div style={{width:`${Math.min(p.achieveRate,100)}%`,height:'100%',background:p.achieveRate>=100?'var(--success)':p.achieveRate>=50?'var(--primary)':'var(--warning)',borderRadius:'4px',transition:'width 0.5s'}}/>
+                    </div>
+                    <span className="text-sm" style={{fontWeight:600}}>{p.achieveRate}%</span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Settings Tab ─── */
+function SettingsTab({session}) {
+  const [oldPin, setOldPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const {addToast} = useToast();
+
+  const handleChangePin = () => {
+    const staff = getStaff();
+    const me = staff.find(s=>s.id===session.staffId);
+    if(!me){addToast('직원 정보를 찾을 수 없습니다.','error');return;}
+    if(!comparePin(me.pin, oldPin)){addToast('현재 비밀번호가 일치하지 않습니다.','error');return;}
+    if(!validatePin(newPin)){addToast('새 비밀번호는 숫자 4자리여야 합니다.','error');return;}
+    if(newPin!==confirmPin){addToast('새 비밀번호가 일치하지 않습니다.','error');return;}
+
+    const updated = staff.map(s=>s.id===session.staffId?{...s,pin:formatPin(newPin)}:s);
+    setStaff(updated);
+    setOldPin('');setNewPin('');setConfirmPin('');
+    addToast('비밀번호가 변경되었습니다.','success');
+  };
+
+  const settings = getSettings();
+
+  return (
+    <div>
+      <div className="section-title">⚙️ 내 설정</div>
+
+      <div className="glass" style={{padding:'24px',marginBottom:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'16px'}}>🔒 비밀번호 변경</h3>
+        <div style={{maxWidth:'360px'}}>
+          <div className="form-group">
+            <label className="form-label">현재 비밀번호</label>
+            <input className="form-input" type="password" inputMode="numeric" maxLength={4} value={oldPin} onChange={e=>setOldPin(e.target.value.replace(/\D/g,''))}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">새 비밀번호 (숫자 4자리)</label>
+            <input className="form-input" type="password" inputMode="numeric" maxLength={4} value={newPin} onChange={e=>setNewPin(e.target.value.replace(/\D/g,''))}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">새 비밀번호 확인</label>
+            <input className="form-input" type="password" inputMode="numeric" maxLength={4} value={confirmPin} onChange={e=>setConfirmPin(e.target.value.replace(/\D/g,''))}/>
+          </div>
+          <button className="btn btn-primary" onClick={handleChangePin}>비밀번호 변경</button>
+        </div>
+      </div>
+
+      <div className="glass" style={{padding:'24px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'16px'}}>🔗 Google Apps Script 연동</h3>
+        <div className="form-group">
+          <label className="form-label">GAS URL</label>
+          <input className="form-input" value={settings.gasUrl||GAS_URL} readOnly style={{background:'rgba(0,0,0,0.03)',fontSize:'0.78rem'}}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* TEAM LEADER DASHBOARD (팀장)                  */
+/* ============================================ */
+function TeamLeaderDashboard({session, onLogout, allTeams=false}) {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selTeam, setSelTeam] = useState(session.teamName);
+
+  const teamName = allTeams ? selTeam : session.teamName;
+
+  const navItems = [
+    {key:'dashboard',icon:'🏠',label:allTeams?'전체 현황':'팀 대시보드',shortLabel:'대시보드'},
+    {key:'users',icon:'👥',label:'이용인 명부',shortLabel:'명부'},
+    {key:'programs',icon:'📋',label:'프로그램 관리',shortLabel:'프로그램'},
+    {key:'attendance',icon:'✅',label:'출석 현황',shortLabel:'출석'},
+    {key:'count',icon:'📝',label:'건수 현황',shortLabel:'건수'},
+    {key:'stats',icon:'📊',label:'팀 실적 관리',shortLabel:'실적'},
+    {key:'reports',icon:'📄',label:'보고서 생성',shortLabel:'보고서'},
+    {key:'teamlog',icon:'🗒️',label:'팀 업무일지',shortLabel:'일지'},
+    {key:'settings',icon:'⚙️',label:'설정',shortLabel:'설정'},
+  ];
+
+  const getPageTitle = () => {
+    const item = navItems.find(n=>n.key===activeTab);
+    return allTeams ? `${item?.label} (전체 팀)` : `${teamName} ${item?.label}`;
+  };
+
+  return (
+    <div className={`app-layout ${allTeams?'theme-director':'theme-leader'}`}>
+      <Sidebar items={navItems} activeTab={activeTab} onTabChange={setActiveTab} position={session.position} isOpen={sidebarOpen} onClose={()=>setSidebarOpen(false)}/>
+      <div className="main-content">
+        <Header session={session} onLogout={onLogout} onMenuToggle={()=>setSidebarOpen(!sidebarOpen)} pageTitle={getPageTitle()}/>
+        <div className="page-content">
+          {allTeams && (
+            <div className="glass" style={{padding:'12px 20px',marginBottom:'16px',display:'flex',alignItems:'center',gap:'12px'}}>
+              <label className="form-label" style={{marginBottom:0,whiteSpace:'nowrap'}}>팀 선택:</label>
+              <select className="form-select" value={selTeam} onChange={e=>setSelTeam(e.target.value)} style={{maxWidth:'200px'}}>
+                {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          )}
+
+          {activeTab==='dashboard' && <TeamDashboardView teamName={teamName} session={session}/>}
+          {activeTab==='users' && <TeamUsersView teamName={teamName} session={session}/>}
+          {activeTab==='programs' && <TeamProgramsView teamName={teamName} session={session}/>}
+          {activeTab==='attendance' && <TeamAttendanceView teamName={teamName} session={session}/>}
+          {activeTab==='count' && <TeamCountView teamName={teamName} session={session}/>}
+          {activeTab==='stats' && <TeamStatsView teamName={teamName} session={session}/>}
+          {activeTab==='reports' && <TeamReportsView teamName={teamName} session={session}/>}
+          {activeTab==='teamlog' && <TeamLogView teamName={teamName} session={session}/>}
+          {activeTab==='settings' && <SettingsTab session={session}/>}
+        </div>
+      </div>
+      <MobileTabBar items={navItems} activeTab={activeTab} onTabChange={setActiveTab}/>
+    </div>
+  );
+}
+
+/* ─── Team Dashboard View ─── */
+function TeamDashboardView({teamName, session}) {
+  const staff = getStaff().filter(s=>s.teamName===teamName && s.status==='재직중');
+  const programs = getPrograms().filter(p=>staff.some(s=>s.id===p.staffId));
+  const users = getUsers().filter(u=>staff.some(s=>s.id===u.staffId));
+  const activeUsers = users.filter(u=>u.status==='활성');
+  const todayStr = today();
+  const monthStr = getMonth(todayStr);
+
+  const attProgs = programs.filter(p=>p.recordType==='attendance');
+  const countProgs = programs.filter(p=>p.recordType==='count');
+  const runningProgs = programs.filter(p=>p.status!=='종료');
+
+  const monthAtt = getAttendance().filter(a=>staff.some(s=>s.id===a.staffId) && getMonth(a.date)===monthStr && a.status==='출석');
+  const monthExtended = monthAtt.length + getCountRecords().filter(c=>staff.some(s=>s.id===c.staffId) && getMonth(c.date)===monthStr).reduce((s,c)=>s+(c.extendedPeople||c.count||0),0);
+
+  // Daily log status
+  const todayLogs = getDailyLogs().filter(l=>l.teamName===teamName && l.date===todayStr && l.status==='submitted');
+
+  // Monthly chart
+  const chartData = [];
+  for(let d=1;d<=31;d++){
+    const ds = `${monthStr}-${String(d).padStart(2,'0')}`;
+    const cnt = getAttendance().filter(a=>staff.some(s=>s.id===a.staffId) && a.date===ds && a.status==='출석').length;
+    if(cnt>0) chartData.push({name:`${d}일`,출석:cnt});
+  }
+
+  return (
+    <div>
+      <div className="section-title">{teamName} 현황 대시보드</div>
+      <div className="stat-grid">
+        <div className="stat-card"><div className="stat-icon">👥</div><div className="stat-value">{users.length}</div><div className="stat-label">이용인 총원 (활성 {activeUsers.length}명)</div></div>
+        <div className="stat-card"><div className="stat-icon">📂</div><div className="stat-value">{programs.length}</div><div className="stat-label">프로그램 (출석 {attProgs.length} / 건수 {countProgs.length})</div></div>
+        <div className="stat-card"><div className="stat-icon">▶️</div><div className="stat-value">{runningProgs.length}</div><div className="stat-label">운영중 프로그램</div></div>
+        <div className="stat-card"><div className="stat-icon">📊</div><div className="stat-value">{monthExtended}</div><div className="stat-label">이번달 연인원</div></div>
+        <div className="stat-card"><div className="stat-icon">📋</div><div className="stat-value">{todayLogs.length}/{staff.length}</div><div className="stat-label">오늘 일지 제출</div></div>
+      </div>
+
+      {/* Team member status */}
+      <div className="glass" style={{padding:'20px',marginBottom:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'12px'}}>👤 팀원 현황</h3>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>이름</th><th>직위</th><th>담당 프로그램</th><th>오늘 일지</th></tr></thead>
+            <tbody>
+              {staff.map(s=>{
+                const sProgs = programs.filter(p=>p.staffId===s.id);
+                const hasLog = getDailyLogs().find(l=>l.staffId===s.id && l.date===todayStr);
+                return (
+                  <tr key={s.id}>
+                    <td><strong>{s.name}</strong></td>
+                    <td>{s.position}</td>
+                    <td>{sProgs.map(p=>p.name).join(', ')||'-'}</td>
+                    <td>{hasLog ? (hasLog.status==='submitted'?<span className="status-pill status-출석">✅ 제출</span>:<span className="status-pill status-조퇴">📝 임시</span>) : <span className="status-pill status-결석">❌ 미작성</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Monthly chart */}
+      {chartData.length>0 && (
+        <div className="glass" style={{padding:'20px'}}>
+          <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'12px'}}>📈 이번달 출석 추이</h3>
+          <div style={{width:'100%',height:240}}>
+            <ResponsiveContainer>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
+                <XAxis dataKey="name" tick={{fontSize:11}}/>
+                <YAxis tick={{fontSize:11}}/>
+                <Tooltip/>
+                <Line type="monotone" dataKey="출석" stroke="var(--primary)" strokeWidth={2} dot={{r:3}}/>
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Team Users View ─── */
+function TeamUsersView({teamName, session}) {
+  const staff = getStaff().filter(s=>s.teamName===teamName && s.status==='재직중');
+  const allUsers = getUsers().filter(u=>staff.some(s=>s.id===u.staffId));
+
+  return (
+    <div>
+      <div className="section-title">👥 {teamName} 이용인 명부</div>
+      {allUsers.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">👥</div><p>등록된 이용인이 없습니다.</p></div>
+      ) : (
+        <div className="glass table-wrap">
+          <table>
+            <thead><tr><th>이름</th><th>담당자</th><th>프로그램</th><th>상태</th><th>등록일</th></tr></thead>
+            <tbody>
+              {allUsers.map(u=>{
+                const s = staff.find(s=>s.id===u.staffId);
+                return (
+                  <tr key={u.id}>
+                    <td><strong>{u.name}</strong></td>
+                    <td>{s?.name||'-'}</td>
+                    <td>{u.programName||'-'}</td>
+                    <td><span className={`status-pill ${u.status==='활성'?'status-출석':'status-결석'}`}>{u.status}</span></td>
+                    <td className="text-sm">{u.createdAt?.substring(0,10)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Team Programs View ─── */
+function TeamProgramsView({teamName, session}) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [editProg, setEditProg] = useState(null);
+  const [form, setForm] = useState({name:'',category:'',subCategory:'',recordType:'attendance',targetCount:'',staffId:'',status:'운영중'});
+  const {addToast} = useToast();
+
+  const staff = getStaff().filter(s=>s.teamName===teamName && s.status==='재직중');
+  const programs = getPrograms().filter(p=>staff.some(s=>s.id===p.staffId));
+
+  const resetForm = () => setForm({name:'',category:'',subCategory:'',recordType:'attendance',targetCount:'',staffId:staff[0]?.id||'',status:'운영중'});
+
+  const handleSave = () => {
+    if(!form.name.trim()){addToast('프로그램명을 입력하세요.','error');return;}
+    if(!form.staffId){addToast('담당자를 선택하세요.','error');return;}
+
+    let all = getPrograms();
+    if(editProg) {
+      all = all.map(p=>p.id===editProg.id?{...p,...form,targetCount:Number(form.targetCount)||0,updatedAt:now()}:p);
+    } else {
+      all.push({
+        id:uuid(), ...form, targetCount:Number(form.targetCount)||0,
+        teamName, createdAt:now()
+      });
+    }
+    setPrograms(all);
+    setShowAdd(false);
+    setEditProg(null);
+    resetForm();
+    addToast(editProg?'프로그램이 수정되었습니다.':'프로그램이 등록되었습니다.','success');
+  };
+
+  const handleEdit = (p) => {
+    setEditProg(p);
+    setForm({name:p.name,category:p.category||'',subCategory:p.subCategory||'',recordType:p.recordType||'attendance',targetCount:String(p.targetCount||''),staffId:p.staffId,status:p.status||'운영중'});
+    setShowAdd(true);
+  };
+
+  const handleDelete = (id) => {
+    setPrograms(getPrograms().filter(p=>p.id!==id));
+    addToast('프로그램이 삭제되었습니다.','success');
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="section-title" style={{marginBottom:0}}>📋 프로그램 관리</div>
+        <button className="btn btn-primary" onClick={()=>{resetForm();setEditProg(null);setShowAdd(true);}}>+ 프로그램 등록</button>
+      </div>
+
+      {showAdd && (
+        <div className="modal-overlay" onClick={()=>{setShowAdd(false);setEditProg(null);}}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editProg?'프로그램 수정':'프로그램 등록'}</h3>
+              <button className="btn btn-icon" onClick={()=>{setShowAdd(false);setEditProg(null);}}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">프로그램명 *</label>
+                <input className="form-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">사업 분류</label>
+                  <input className="form-input" value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))} placeholder="예: 조사연구"/>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">세부 분류</label>
+                  <input className="form-input" value={form.subCategory} onChange={e=>setForm(f=>({...f,subCategory:e.target.value}))}/>
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">실적 유형 *</label>
+                <div className="flex gap-4" style={{marginTop:'8px'}}>
+                  <label style={{display:'flex',alignItems:'center',gap:'6px',cursor:'pointer'}}>
+                    <input type="radio" name="recordType" value="attendance" checked={form.recordType==='attendance'} onChange={()=>setForm(f=>({...f,recordType:'attendance'}))}/>
+                    🟦 출석형 (출석부 기반)
+                  </label>
+                  <label style={{display:'flex',alignItems:'center',gap:'6px',cursor:'pointer'}}>
+                    <input type="radio" name="recordType" value="count" checked={form.recordType==='count'} onChange={()=>setForm(f=>({...f,recordType:'count'}))}/>
+                    🟧 건수형 (건수 직접 입력)
+                  </label>
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">목표 건수</label>
+                  <input className="form-input" type="number" min="0" value={form.targetCount} onChange={e=>setForm(f=>({...f,targetCount:e.target.value}))} placeholder="건"/>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">담당자 *</label>
+                  <select className="form-select" value={form.staffId} onChange={e=>setForm(f=>({...f,staffId:e.target.value}))}>
+                    <option value="">선택</option>
+                    {staff.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">상태</label>
+                <select className="form-select" value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
+                  <option value="운영중">운영중</option>
+                  <option value="종료">종료</option>
+                  <option value="일시중단">일시중단</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={()=>{setShowAdd(false);setEditProg(null);}}>취소</button>
+              <button className="btn btn-primary" onClick={handleSave}>{editProg?'수정':'등록'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {programs.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">📋</div><p>등록된 프로그램이 없습니다.</p></div>
+      ) : (
+        <div className="glass table-wrap">
+          <table>
+            <thead><tr><th>프로그램명</th><th>분류</th><th>유형</th><th>담당자</th><th>목표</th><th>상태</th><th>액션</th></tr></thead>
+            <tbody>
+              {programs.map(p=>{
+                const s = staff.find(s=>s.id===p.staffId);
+                return (
+                  <tr key={p.id}>
+                    <td><strong>{p.name}</strong></td>
+                    <td className="text-sm">{p.category||'-'}</td>
+                    <td><span className={p.recordType==='attendance'?'rtype-attendance':'rtype-count'}>{p.recordType==='attendance'?'출석형':'건수형'}</span></td>
+                    <td>{s?.name||'-'}</td>
+                    <td>{p.targetCount||0}건</td>
+                    <td><span className={`status-pill ${p.status==='운영중'?'status-출석':'status-결석'}`}>{p.status||'운영중'}</span></td>
+                    <td>
+                      <div className="flex gap-2">
+                        <button className="btn btn-sm btn-secondary" onClick={()=>handleEdit(p)}>✏️</button>
+                        <button className="btn btn-sm btn-danger" onClick={()=>handleDelete(p.id)}>🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Team Attendance View ─── */
+function TeamAttendanceView({teamName, session}) {
+  const [selDate, setSelDate] = useState(today());
+  const staff = getStaff().filter(s=>s.teamName===teamName && s.status==='재직중');
+  const att = getAttendance().filter(a=>staff.some(s=>s.id===a.staffId) && a.date===selDate);
+
+  const byStaff = staff.map(s=>{
+    const sAtt = att.filter(a=>a.staffId===s.id);
+    return { ...s, total:sAtt.length, present:sAtt.filter(a=>a.status==='출석').length, absent:sAtt.filter(a=>a.status==='결석').length };
+  });
+
+  return (
+    <div>
+      <div className="section-title">✅ 출석 현황</div>
+      <div className="glass" style={{padding:'16px',marginBottom:'16px'}}>
+        <input className="form-input" type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} style={{maxWidth:'200px'}}/>
+      </div>
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>직원명</th><th>전체</th><th>출석</th><th>결석</th><th>출석률</th></tr></thead>
+          <tbody>
+            {byStaff.map(s=>(
+              <tr key={s.id}>
+                <td><strong>{s.name}</strong></td>
+                <td>{s.total}</td>
+                <td style={{color:'var(--success)'}}>{s.present}</td>
+                <td style={{color:'var(--danger)'}}>{s.absent}</td>
+                <td>{s.total>0?Math.round(s.present/s.total*100):0}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Team Count View ─── */
+function TeamCountView({teamName, session}) {
+  const [selDate, setSelDate] = useState(today());
+  const staff = getStaff().filter(s=>s.teamName===teamName && s.status==='재직중');
+  const records = getCountRecords().filter(c=>staff.some(s=>s.id===c.staffId) && c.date===selDate);
+
+  return (
+    <div>
+      <div className="section-title">📝 건수 현황</div>
+      <div className="glass" style={{padding:'16px',marginBottom:'16px'}}>
+        <input className="form-input" type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} style={{maxWidth:'200px'}}/>
+      </div>
+      {records.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">📝</div><p>해당 날짜에 입력된 건수가 없습니다.</p></div>
+      ) : (
+        <div className="glass table-wrap">
+          <table>
+            <thead><tr><th>직원명</th><th>프로그램</th><th>건수</th><th>실인원</th><th>연인원</th><th>내용</th></tr></thead>
+            <tbody>
+              {records.map(r=>{
+                const s = staff.find(s=>s.id===r.staffId);
+                return (
+                  <tr key={r.id}>
+                    <td><strong>{s?.name||'-'}</strong></td>
+                    <td>{r.programName}</td>
+                    <td>{r.count}건</td>
+                    <td>{r.people!=null?r.people+'명':'-'}</td>
+                    <td>{r.extendedPeople!=null?r.extendedPeople+'명':'-'}</td>
+                    <td style={{maxWidth:'180px',overflow:'hidden',textOverflow:'ellipsis'}}>{r.note||'-'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Team Stats View ─── */
+function TeamStatsView({teamName, session}) {
+  const [period, setPeriod] = useState('월별');
+  const periods = ['일별','주별','월별','분기별','상·하반기','연간'];
+  const staff = getStaff().filter(s=>s.teamName===teamName && s.status==='재직중');
+  const programs = getPrograms().filter(p=>staff.some(s=>s.id===p.staffId));
+  const yearStr = String(new Date().getFullYear());
+  const allAtt = getAttendance().filter(a=>staff.some(s=>s.id===a.staffId));
+  const allCount = getCountRecords().filter(c=>staff.some(s=>s.id===c.staffId));
+
+  const progStats = programs.map(prog=>{
+    let cumCount=0;
+    if(prog.recordType==='attendance'){
+      cumCount = allAtt.filter(a=>a.programId===prog.id && getYear(a.date)===yearStr && a.status==='출석').length;
+    } else {
+      cumCount = allCount.filter(c=>c.programId===prog.id && getYear(c.date)===yearStr).reduce((s,c)=>s+c.count,0);
+    }
+    const target = prog.targetCount||0;
+    return {...prog, cumCount, target, achieveRate:target>0?Math.round(cumCount/target*100):0};
+  });
+
+  return (
+    <div>
+      <div className="section-title">📊 {teamName} 실적 관리</div>
+      <div className="tabs mb-4">
+        {periods.map(p=><button key={p} className={`tab ${period===p?'active':''}`} onClick={()=>setPeriod(p)}>{p}</button>)}
+      </div>
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>프로그램명</th><th>유형</th><th>담당자</th><th>목표</th><th>누계</th><th>달성률</th></tr></thead>
+          <tbody>
+            {progStats.map(p=>{
+              const s = staff.find(s=>s.id===p.staffId);
+              return (
+                <tr key={p.id}>
+                  <td><strong>{p.name}</strong></td>
+                  <td><span className={p.recordType==='attendance'?'rtype-attendance':'rtype-count'}>{p.recordType==='attendance'?'출석':'건수'}</span></td>
+                  <td>{s?.name||'-'}</td>
+                  <td>{p.target}</td>
+                  <td>{p.cumCount}</td>
+                  <td>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                      <div style={{flex:1,height:'6px',background:'rgba(0,0,0,0.06)',borderRadius:'4px',overflow:'hidden'}}>
+                        <div style={{width:`${Math.min(p.achieveRate,100)}%`,height:'100%',background:p.achieveRate>=100?'var(--success)':'var(--primary)',borderRadius:'4px'}}/>
+                      </div>
+                      <span className="text-sm" style={{fontWeight:600}}>{p.achieveRate}%</span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Team Reports View ─── */
+function TeamReportsView({teamName, session}) {
+  const {addToast} = useToast();
+  const reports = [
+    {type:1, name:'팀 이용인 명부', icon:'👥'},
+    {type:2, name:'월별 실적 보고서', icon:'📊'},
+    {type:3, name:'사업계획서 실적 현황', icon:'📋'},
+    {type:4, name:'구글 문서/시트 내보내기', icon:'📤'},
+    {type:5, name:'PDF 인쇄', icon:'🖨️'},
+    {type:6, name:'팀 일일업무일지 출력', icon:'🗒️'},
+  ];
+
+  const handleGenerate = async (type) => {
+    addToast(`${reports.find(r=>r.type===type)?.name} 생성 중...`,'info');
+    if(type===5) { window.print(); return; }
+    try {
+      const result = await callGAS('exportReport',{type, teamName, year:new Date().getFullYear()});
+      if(result.success && result.url) {
+        window.open(result.url,'_blank');
+        addToast('보고서가 생성되었습니다.','success');
+      }
+    } catch(e) {
+      addToast('보고서 생성 중 오류가 발생했습니다.','error');
+    }
+  };
+
+  return (
+    <div>
+      <div className="section-title">📄 보고서 생성</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))',gap:'14px'}}>
+        {reports.map(r=>(
+          <div key={r.type} className="glass" style={{padding:'24px',textAlign:'center',cursor:'pointer'}} onClick={()=>handleGenerate(r.type)}>
+            <div style={{fontSize:'2.2rem',marginBottom:'10px'}}>{r.icon}</div>
+            <div style={{fontWeight:600,fontSize:'0.92rem'}}>{r.name}</div>
+            <div className="text-sm" style={{color:'var(--text-muted)',marginTop:'4px'}}>유형 {r.type}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Team Log View ─── */
+function TeamLogView({teamName, session}) {
+  const [selDate, setSelDate] = useState(today());
+  const [viewLog, setViewLog] = useState(null);
+  const {addToast} = useToast();
+
+  const staff = getStaff().filter(s=>s.teamName===teamName && s.status==='재직중');
+  const logs = getDailyLogs().filter(l=>l.teamName===teamName && l.date===selDate);
+
+  const staffLogStatus = staff.map(s=>{
+    const log = logs.find(l=>l.staffId===s.id);
+    return { ...s, log, status: log ? (log.status==='submitted'?'제출':'임시저장') : '미작성' };
+  });
+
+  const handleGenerateTeamLog = () => {
+    // Generate combined team log view
+    const combined = {
+      teamName, date:selDate, dayOfWeek:getDayOfWeek(selDate),
+      workItems: [],
+      performanceSummary: { programs:[], totalDayCount:0, totalMonthCount:0, totalCumCount:0 },
+      supervision: '',
+    };
+
+    // Merge work items
+    staff.forEach(s=>{
+      const log = logs.find(l=>l.staffId===s.id);
+      if(log && log.workItems) {
+        log.workItems.forEach(w=>combined.workItems.push({personName:w.personName||s.name,content:w.content}));
+        if(log.supervision) combined.supervision += `[${s.name}] ${log.supervision}\n`;
+      } else {
+        combined.workItems.push({personName:s.name,content:'(업무 내용 미작성)'});
+      }
+    });
+
+    // Merge performance
+    const allPrograms = getPrograms().filter(p=>staff.some(s=>s.id===p.staffId));
+    allPrograms.forEach(prog=>{
+      const perf = generatePerformanceSummary(prog.staffId, selDate);
+      const pData = perf.programs.find(pp=>pp.programId===prog.id);
+      if(pData) combined.performanceSummary.programs.push(pData);
+    });
+
+    setViewLog(combined);
+    addToast('팀 통합 업무일지가 생성되었습니다.','success');
+  };
+
+  if(viewLog) {
+    return (
+      <div>
+        <button className="btn btn-secondary mb-4 no-print" onClick={()=>setViewLog(null)}>← 목록으로</button>
+        <DailyLogViewer log={{...viewLog,id:'team',staffId:'team',staffName:teamName}} onBack={()=>setViewLog(null)}/>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="section-title" style={{marginBottom:0}}>🗒️ 팀 업무일지</div>
+        <button className="btn btn-primary" onClick={handleGenerateTeamLog}>📄 팀 통합 업무일지 생성</button>
+      </div>
+
+      <div className="glass" style={{padding:'16px',marginBottom:'16px'}}>
+        <input className="form-input" type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} style={{maxWidth:'200px'}}/>
+      </div>
+
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>팀원명</th><th>제출 여부</th><th>주요 업무 요약</th><th>액션</th></tr></thead>
+          <tbody>
+            {staffLogStatus.map(s=>(
+              <tr key={s.id}>
+                <td><strong>{s.name}</strong></td>
+                <td>
+                  {s.status==='제출'?<span className="status-pill status-출석">✅ 제출</span>:
+                   s.status==='임시저장'?<span className="status-pill status-조퇴">📝 임시저장</span>:
+                   <span className="status-pill status-결석">❌ 미작성</span>}
+                </td>
+                <td style={{maxWidth:'250px',overflow:'hidden',textOverflow:'ellipsis'}}>
+                  {s.log?.workItems?.map(w=>w.content).filter(Boolean).join(', ')||'─'}
+                </td>
+                <td>{s.log && <button className="btn btn-sm btn-secondary" onClick={()=>setViewLog(s.log)}>보기</button>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* ADMIN DASHBOARD (관장/관리자)                  */
+/* ============================================ */
+function AdminDashboard({session, onLogout}) {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const navItems = [
+    {key:'dashboard',icon:'🏠',label:'전체 현황',shortLabel:'현황'},
+    {key:'users',icon:'👥',label:'이용인 명부',shortLabel:'명부'},
+    {key:'programs',icon:'📋',label:'프로그램 관리',shortLabel:'프로그램'},
+    {key:'attendance',icon:'✅',label:'출석 현황',shortLabel:'출석'},
+    {key:'stats',icon:'📊',label:'실적 관리',shortLabel:'실적'},
+    {key:'reports',icon:'📄',label:'보고서 생성',shortLabel:'보고서'},
+    {key:'logs',icon:'🗒️',label:'업무일지 관리',shortLabel:'일지'},
+    {key:'staff',icon:'👤',label:'직원 관리',shortLabel:'직원'},
+    {key:'seoul',icon:'🏛️',label:'서울시 요구자료',shortLabel:'서울시'},
+    {key:'system',icon:'⚙️',label:'시스템 설정',shortLabel:'설정'},
+  ];
+
+  const getPageTitle = () => navItems.find(n=>n.key===activeTab)?.label||'';
+
+  return (
+    <div className="app-layout theme-admin">
+      <Sidebar items={navItems} activeTab={activeTab} onTabChange={setActiveTab} position="관장" isOpen={sidebarOpen} onClose={()=>setSidebarOpen(false)}/>
+      <div className="main-content">
+        <Header session={session} onLogout={onLogout} onMenuToggle={()=>setSidebarOpen(!sidebarOpen)} pageTitle={getPageTitle()}/>
+        <div className="page-content">
+          {activeTab==='dashboard' && <AdminOverview session={session}/>}
+          {activeTab==='users' && <AdminAllUsers session={session}/>}
+          {activeTab==='programs' && <AdminAllPrograms session={session}/>}
+          {activeTab==='attendance' && <AdminAllAttendance session={session}/>}
+          {activeTab==='stats' && <AdminAllStats session={session}/>}
+          {activeTab==='reports' && <TeamReportsView teamName="전체" session={session}/>}
+          {activeTab==='logs' && <AdminLogsView session={session}/>}
+          {activeTab==='staff' && <StaffManagement session={session}/>}
+          {activeTab==='seoul' && <SeoulReportView session={session}/>}
+          {activeTab==='system' && <SystemSettingsView session={session}/>}
+        </div>
+      </div>
+      <MobileTabBar items={navItems} activeTab={activeTab} onTabChange={setActiveTab}/>
+    </div>
+  );
+}
+
+/* ─── Admin Overview ─── */
+function AdminOverview({session}) {
+  const allStaff = getStaff().filter(s=>s.status==='재직중');
+  const allUsers = getUsers();
+  const activeUsers = allUsers.filter(u=>u.status==='활성');
+  const allProgs = getPrograms();
+  const todayStr = today();
+  const monthStr = getMonth(todayStr);
+
+  const attProgs = allProgs.filter(p=>p.recordType==='attendance');
+  const countProgs = allProgs.filter(p=>p.recordType==='count');
+
+  const monthAtt = getAttendance().filter(a=>getMonth(a.date)===monthStr && a.status==='출석');
+  const monthCountRecs = getCountRecords().filter(c=>getMonth(c.date)===monthStr);
+  const monthExtended = monthAtt.length + monthCountRecs.reduce((s,c)=>s+(c.extendedPeople||c.count||0),0);
+
+  const todayLogs = getDailyLogs().filter(l=>l.date===todayStr && l.status==='submitted');
+
+  // Team chart
+  const teamData = TEAMS.map(t=>{
+    const tStaff = allStaff.filter(s=>s.teamName===t);
+    const tUsers = allUsers.filter(u=>tStaff.some(s=>s.id===u.staffId) && u.status==='활성');
+    const tAtt = monthAtt.filter(a=>tStaff.some(s=>s.id===a.staffId));
+    return {name:t.replace('팀',''),이용인:tUsers.length,출석:tAtt.length};
+  });
+
+  return (
+    <div>
+      <div className="section-title">🏛️ 기관 전체 현황</div>
+      <div className="stat-grid">
+        <div className="stat-card"><div className="stat-icon">👥</div><div className="stat-value">{allUsers.length}</div><div className="stat-label">전체 이용인 (활성 {activeUsers.length})</div></div>
+        <div className="stat-card"><div className="stat-icon">📂</div><div className="stat-value">{allProgs.length}</div><div className="stat-label">프로그램 (출석 {attProgs.length} / 건수 {countProgs.length})</div></div>
+        <div className="stat-card"><div className="stat-icon">👤</div><div className="stat-value">{allStaff.length}</div><div className="stat-label">재직 직원</div></div>
+        <div className="stat-card"><div className="stat-icon">📊</div><div className="stat-value">{monthExtended}</div><div className="stat-label">이번달 연인원</div></div>
+        <div className="stat-card"><div className="stat-icon">📋</div><div className="stat-value">{todayLogs.length}/{allStaff.length}</div><div className="stat-label">오늘 일지 제출</div></div>
+      </div>
+
+      {/* Team comparison chart */}
+      <div className="glass" style={{padding:'20px',marginBottom:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'12px'}}>📊 팀별 현황 비교</h3>
+        <div style={{width:'100%',height:280}}>
+          <ResponsiveContainer>
+            <BarChart data={teamData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
+              <XAxis dataKey="name" tick={{fontSize:11}}/>
+              <YAxis tick={{fontSize:11}}/>
+              <Tooltip/>
+              <Legend/>
+              <Bar dataKey="이용인" fill="var(--primary)" radius={[4,4,0,0]}/>
+              <Bar dataKey="출석" fill="var(--success)" radius={[4,4,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Staff input status */}
+      <div className="glass" style={{padding:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'12px'}}>👤 직원별 오늘 현황</h3>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>이름</th><th>팀</th><th>직위</th><th>일지 제출</th></tr></thead>
+            <tbody>
+              {allStaff.map(s=>{
+                const hasLog = getDailyLogs().find(l=>l.staffId===s.id && l.date===todayStr);
+                return (
+                  <tr key={s.id}>
+                    <td><strong>{s.name}</strong></td>
+                    <td>{s.teamName}</td>
+                    <td>{s.position}</td>
+                    <td>
+                      {hasLog ? (hasLog.status==='submitted' ? <span className="status-pill status-출석">✅ 제출</span> : <span className="status-pill status-조퇴">📝 임시</span>) : <span className="status-pill status-결석" style={{fontWeight:600}}>❌ 미제출</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Admin All Users/Programs/Attendance/Stats ─── */
+function AdminAllUsers({session}) {
+  const allUsers = getUsers();
+  const allStaff = getStaff().filter(s=>s.status==='재직중');
+  return (
+    <div>
+      <div className="section-title">👥 전체 이용인 명부 ({allUsers.length}명)</div>
+      {allUsers.length===0 ? (
+        <div className="empty-state glass"><div className="empty-icon">👥</div><p>등록된 이용인이 없습니다.</p></div>
+      ) : (
+        <div className="glass table-wrap">
+          <table>
+            <thead><tr><th>이름</th><th>담당자</th><th>팀</th><th>프로그램</th><th>상태</th></tr></thead>
+            <tbody>
+              {allUsers.map(u=>{
+                const s=allStaff.find(s=>s.id===u.staffId);
+                return (
+                  <tr key={u.id}>
+                    <td><strong>{u.name}</strong></td>
+                    <td>{s?.name||'-'}</td>
+                    <td>{s?.teamName||'-'}</td>
+                    <td>{u.programName||'-'}</td>
+                    <td><span className={`status-pill ${u.status==='활성'?'status-출석':'status-결석'}`}>{u.status}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminAllPrograms({session}) {
+  return <TeamProgramsView teamName="전체" session={session}/>;
+}
+
+function AdminAllAttendance({session}) {
+  const [selDate, setSelDate] = useState(today());
+  const att = getAttendance().filter(a=>a.date===selDate);
+  const byTeam = TEAMS.map(t=>{
+    const tStaff = getStaff().filter(s=>s.teamName===t && s.status==='재직중');
+    const tAtt = att.filter(a=>tStaff.some(s=>s.id===a.staffId));
+    return {team:t,total:tAtt.length,present:tAtt.filter(a=>a.status==='출석').length};
+  });
+  return (
+    <div>
+      <div className="section-title">✅ 전체 출석 현황</div>
+      <div className="glass" style={{padding:'16px',marginBottom:'16px'}}>
+        <input className="form-input" type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} style={{maxWidth:'200px'}}/>
+      </div>
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>팀</th><th>전체 기록</th><th>출석</th><th>출석률</th></tr></thead>
+          <tbody>
+            {byTeam.map(t=>(
+              <tr key={t.team}>
+                <td><strong>{t.team}</strong></td>
+                <td>{t.total}</td>
+                <td>{t.present}</td>
+                <td>{t.total>0?Math.round(t.present/t.total*100):0}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function AdminAllStats({session}) {
+  const yearStr = String(new Date().getFullYear());
+  const allProgs = getPrograms();
+  const allAtt = getAttendance();
+  const allCount = getCountRecords();
+
+  const progStats = allProgs.map(prog=>{
+    let cumCount=0;
+    if(prog.recordType==='attendance'){
+      cumCount=allAtt.filter(a=>a.programId===prog.id&&getYear(a.date)===yearStr&&a.status==='출석').length;
+    } else {
+      cumCount=allCount.filter(c=>c.programId===prog.id&&getYear(c.date)===yearStr).reduce((s,c)=>s+c.count,0);
+    }
+    const target=prog.targetCount||0;
+    const staff=getStaff().find(s=>s.id===prog.staffId);
+    return {...prog,cumCount,target,achieveRate:target>0?Math.round(cumCount/target*100):0,staffName:staff?.name||'-',teamName:staff?.teamName||'-'};
+  });
+
+  return (
+    <div>
+      <div className="section-title">📊 전체 실적 관리</div>
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>프로그램</th><th>팀</th><th>담당자</th><th>유형</th><th>목표</th><th>누계</th><th>달성률</th></tr></thead>
+          <tbody>
+            {progStats.map(p=>(
+              <tr key={p.id}>
+                <td><strong>{p.name}</strong></td>
+                <td>{p.teamName}</td>
+                <td>{p.staffName}</td>
+                <td><span className={p.recordType==='attendance'?'rtype-attendance':'rtype-count'}>{p.recordType==='attendance'?'출석':'건수'}</span></td>
+                <td>{p.target}</td>
+                <td>{p.cumCount}</td>
+                <td>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                    <div style={{flex:1,height:'6px',background:'rgba(0,0,0,0.06)',borderRadius:'4px',overflow:'hidden'}}>
+                      <div style={{width:`${Math.min(p.achieveRate,100)}%`,height:'100%',background:p.achieveRate>=100?'var(--success)':'var(--primary)',borderRadius:'4px'}}/>
+                    </div>
+                    <span className="text-sm" style={{fontWeight:600}}>{p.achieveRate}%</span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Admin Logs View ─── */
+function AdminLogsView({session}) {
+  const [selDate, setSelDate] = useState(today());
+  const [selTeam, setSelTeam] = useState('전체');
+  const [viewLog, setViewLog] = useState(null);
+  const {addToast} = useToast();
+
+  const allStaff = getStaff().filter(s=>s.status==='재직중');
+  const filteredStaff = selTeam==='전체' ? allStaff : allStaff.filter(s=>s.teamName===selTeam);
+  const logs = getDailyLogs().filter(l=>l.date===selDate);
+
+  const staffLogStatus = filteredStaff.map(s=>{
+    const log = logs.find(l=>l.staffId===s.id);
+    return {...s,log,logStatus:log?(log.status==='submitted'?'제출':'임시저장'):'미작성'};
+  });
+
+  const handleGenerateOrgLog = () => {
+    addToast('기관 통합 업무일지 생성 중...','info');
+    const combined = {
+      teamName:'강동어울림복지관 전체', date:selDate, dayOfWeek:getDayOfWeek(selDate),
+      workItems:[], performanceSummary:{programs:[]}, supervision:''
+    };
+
+    TEAMS.forEach(team=>{
+      const tStaff = allStaff.filter(s=>s.teamName===team);
+      tStaff.forEach(s=>{
+        const log = logs.find(l=>l.staffId===s.id);
+        if(log?.workItems) {
+          log.workItems.forEach(w=>combined.workItems.push({personName:`[${team}] ${w.personName||s.name}`,content:w.content}));
+          if(log.supervision) combined.supervision += `[${team}/${s.name}] ${log.supervision}\n`;
+        } else {
+          combined.workItems.push({personName:`[${team}] ${s.name}`,content:'(업무 내용 미작성)'});
+        }
+      });
+    });
+
+    setViewLog(combined);
+    addToast('기관 통합 업무일지가 생성되었습니다.','success');
+  };
+
+  if(viewLog) {
+    return (
+      <div>
+        <button className="btn btn-secondary mb-4 no-print" onClick={()=>setViewLog(null)}>← 목록으로</button>
+        <DailyLogViewer log={{...viewLog,id:'org',staffId:'org',staffName:'전체'}} onBack={()=>setViewLog(null)}/>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="section-title" style={{marginBottom:0}}>🗒️ 업무일지 관리</div>
+        <button className="btn btn-primary" onClick={handleGenerateOrgLog}>📄 기관 통합 업무일지 생성</button>
+      </div>
+
+      <div className="glass" style={{padding:'16px',marginBottom:'16px',display:'flex',gap:'12px',alignItems:'flex-end',flexWrap:'wrap'}}>
+        <div className="form-group" style={{marginBottom:0}}>
+          <label className="form-label">날짜</label>
+          <input className="form-input" type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} style={{width:'180px'}}/>
+        </div>
+        <div className="form-group" style={{marginBottom:0}}>
+          <label className="form-label">팀</label>
+          <select className="form-select" value={selTeam} onChange={e=>setSelTeam(e.target.value)} style={{width:'160px'}}>
+            <option value="전체">전체</option>
+            {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>팀명</th><th>팀원명</th><th>제출여부</th><th>주요업무 요약</th><th>액션</th></tr></thead>
+          <tbody>
+            {staffLogStatus.map(s=>(
+              <tr key={s.id}>
+                <td>{s.teamName}</td>
+                <td><strong>{s.name}</strong></td>
+                <td>
+                  {s.logStatus==='제출'?<span className="status-pill status-출석">✅ 제출</span>:
+                   s.logStatus==='임시저장'?<span className="status-pill status-조퇴">📝 임시저장</span>:
+                   <span className="status-pill status-결석">❌ 미작성</span>}
+                </td>
+                <td style={{maxWidth:'220px',overflow:'hidden',textOverflow:'ellipsis'}}>
+                  {s.log?.workItems?.map(w=>w.content).filter(Boolean).join(', ')||'─'}
+                </td>
+                <td>
+                  {s.log && (
+                    <div className="flex gap-2">
+                      <button className="btn btn-sm btn-secondary" onClick={()=>setViewLog(s.log)}>보기</button>
+                      <button className="btn btn-sm btn-secondary" onClick={()=>window.print()}>🖨️</button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Staff Management ─── */
+function StaffManagement({session}) {
+  const [staffList, setStaffList] = useState(getStaff());
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({name:'',teamName:'지역연계팀',position:'팀원',pin:'',status:'재직중'});
+  const {addToast} = useToast();
+
+  const handleSave = () => {
+    if(!form.name.trim()){addToast('이름을 입력하세요.','error');return;}
+    const pin = form.pin || generatePin();
+    const newStaff = {
+      id:uuid(), name:form.name.trim(), teamName:form.teamName,
+      position:form.position, pin:formatPin(pin),
+      status:form.status, createdAt:now(), lastLoginAt:null
+    };
+    const updated = [...staffList, newStaff];
+    setStaff(updated);
+    setStaffList(updated);
+    setShowAdd(false);
+    setForm({name:'',teamName:'지역연계팀',position:'팀원',pin:'',status:'재직중'});
+    addToast(`${newStaff.name}님이 등록되었습니다. (임시 PIN: ${formatPin(pin)})`,'success');
+  };
+
+  const handleResetPin = (id) => {
+    const newPin = generatePin();
+    const updated = staffList.map(s=>s.id===id?{...s,pin:newPin}:s);
+    setStaff(updated);
+    setStaffList(updated);
+    addToast(`PIN이 초기화되었습니다: ${newPin}`,'success');
+  };
+
+  const handleStatusChange = (id, status) => {
+    const updated = staffList.map(s=>s.id===id?{...s,status}:s);
+    setStaff(updated);
+    setStaffList(updated);
+    addToast('상태가 변경되었습니다.','success');
+  };
+
+  const handleDelete = (id) => {
+    if(id===session.staffId){addToast('본인을 삭제할 수 없습니다.','error');return;}
+    const updated = staffList.filter(s=>s.id!==id);
+    setStaff(updated);
+    setStaffList(updated);
+    addToast('직원이 삭제되었습니다.','success');
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="section-title" style={{marginBottom:0}}>👤 직원 관리 ({staffList.length}명)</div>
+        <button className="btn btn-primary" onClick={()=>setShowAdd(true)}>+ 직원 등록</button>
+      </div>
+
+      {showAdd && (
+        <div className="modal-overlay" onClick={()=>setShowAdd(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header"><h3>직원 등록</h3><button className="btn btn-icon" onClick={()=>setShowAdd(false)}>✕</button></div>
+            <div className="modal-body">
+              <div className="form-group"><label className="form-label">이름 *</label><input className="form-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
+              <div className="grid-2">
+                <div className="form-group"><label className="form-label">팀</label><select className="form-select" value={form.teamName} onChange={e=>setForm(f=>({...f,teamName:e.target.value}))}>{TEAMS.map(t=><option key={t}>{t}</option>)}</select></div>
+                <div className="form-group"><label className="form-label">직위</label><select className="form-select" value={form.position} onChange={e=>setForm(f=>({...f,position:e.target.value}))}>{POSITIONS.map(p=><option key={p}>{p}</option>)}</select></div>
+              </div>
+              <div className="form-group"><label className="form-label">임시 PIN (미입력 시 자동생성)</label><input className="form-input" type="password" inputMode="numeric" maxLength={4} value={form.pin} onChange={e=>setForm(f=>({...f,pin:e.target.value.replace(/\D/g,'')}))}/></div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={()=>setShowAdd(false)}>취소</button>
+              <button className="btn btn-primary" onClick={handleSave}>등록</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="glass table-wrap">
+        <table>
+          <thead><tr><th>이름</th><th>팀</th><th>직위</th><th>상태</th><th>마지막 로그인</th><th>액션</th></tr></thead>
+          <tbody>
+            {staffList.map(s=>(
+              <tr key={s.id}>
+                <td><strong>{s.name}</strong></td>
+                <td>{s.teamName}</td>
+                <td>
+                  <span className={`badge ${s.position==='팀원'?'badge-team':s.position==='팀장'?'badge-leader':s.position==='국장'?'badge-director':'badge-admin'}`}>
+                    {s.position}
+                  </span>
+                </td>
+                <td>
+                  <select className="form-select" value={s.status} onChange={e=>handleStatusChange(s.id,e.target.value)} style={{width:'auto',padding:'4px 8px',fontSize:'0.78rem'}}>
+                    <option value="재직중">재직중</option>
+                    <option value="휴직">휴직</option>
+                    <option value="퇴직">퇴직</option>
+                  </select>
+                </td>
+                <td className="text-sm">{s.lastLoginAt?fmtDate(s.lastLoginAt):'-'}</td>
+                <td>
+                  <div className="flex gap-2">
+                    <button className="btn btn-sm btn-secondary" onClick={()=>handleResetPin(s.id)} title="PIN 초기화">🔑</button>
+                    <button className="btn btn-sm btn-danger" onClick={()=>handleDelete(s.id)} title="삭제">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Seoul Report View ─── */
+function SeoulReportView({session}) {
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const {addToast} = useToast();
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    try {
+      const res = await callGAS('getSeoulReport',{year});
+      if(res.success) {
+        setResult(res);
+        addToast('서울시 요구자료가 생성되었습니다.','success');
+      } else {
+        addToast('자료 생성에 실패했습니다.','error');
+      }
+    } catch(e) {
+      addToast('오류가 발생했습니다.','error');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div>
+      <div className="section-title">🏛️ 서울시 요구자료</div>
+      <div className="glass" style={{padding:'24px',marginBottom:'20px'}}>
+        <div className="flex gap-3 items-center">
+          <div className="form-group" style={{marginBottom:0}}>
+            <label className="form-label">연도</label>
+            <input className="form-input" type="number" value={year} onChange={e=>setYear(Number(e.target.value))} style={{width:'120px'}}/>
+          </div>
+          <button className="btn btn-primary" onClick={handleGenerate} disabled={loading}>
+            {loading?'⏳ 생성 중...':'📊 요구자료 생성'}
+          </button>
+        </div>
+      </div>
+      {loading && <div className="spinner"/>}
+      {result && (
+        <div className="glass" style={{padding:'20px'}}>
+          <div className="alert-box alert-success">✅ 자료가 성공적으로 생성되었습니다.</div>
+          {result.url && <a href={result.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">📥 구글 시트에서 보기</a>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── System Settings View ─── */
+function SystemSettingsView({session}) {
+  const [settings, setSettingsState] = useState(getSettings());
+  const {addToast} = useToast();
+
+  const handleSave = () => {
+    setSettingsLS(settings);
+    addToast('설정이 저장되었습니다.','success');
+  };
+
+  return (
+    <div>
+      <div className="section-title">⚙️ 시스템 설정</div>
+
+      <div className="glass" style={{padding:'24px',marginBottom:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'16px'}}>🔗 Google Apps Script URL</h3>
+        <div className="form-group">
+          <input className="form-input" value={settings.gasUrl||''} onChange={e=>setSettingsState(s=>({...s,gasUrl:e.target.value}))} placeholder="GAS URL"/>
+        </div>
+      </div>
+
+      <div className="glass" style={{padding:'24px',marginBottom:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'16px'}}>📋 업무일지 설정</h3>
+        <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label">제출 마감 시간</label>
+            <input className="form-input" type="time" value={settings.logDeadline||'18:00'} onChange={e=>setSettingsState(s=>({...s,logDeadline:e.target.value}))}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">미제출 알림 표시</label>
+            <select className="form-select" value={settings.showAlert?'true':'false'} onChange={e=>setSettingsState(s=>({...s,showAlert:e.target.value==='true'}))}>
+              <option value="true">표시</option>
+              <option value="false">숨김</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass" style={{padding:'24px',marginBottom:'20px'}}>
+        <h3 style={{fontSize:'0.95rem',fontWeight:700,marginBottom:'16px'}}>🔒 비밀번호 변경</h3>
+        <SettingsTab session={session}/>
+      </div>
+
+      <button className="btn btn-primary" onClick={handleSave}>💾 설정 저장</button>
+    </div>
+  );
+}
+
+/* ============================================ */
+/* MAIN APP                                     */
+/* ============================================ */
+function App() {
+  const [page, setPage] = useState('loading'); // loading, login, register, dashboard
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    const sess = getSession();
+    if(sess && isSessionValid(sess)){
+      setSession(sess);
+      setPage('dashboard');
+    } else {
+      clearSession();
+      setPage('login');
+    }
+  },[]);
+
+  // Session expiry check
+  useEffect(()=>{
+    if(!session) return;
+    const timer = setInterval(()=>{
+      if(!isSessionValid(session)){
+        clearSession();
+        setSession(null);
+        setPage('login');
+      }
+    },60000);
+    return ()=>clearInterval(timer);
+  },[session]);
+
+  const handleLogin = (sess) => {
+    setSession(sess);
+    setPage('dashboard');
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    setSession(null);
+    setPage('login');
+  };
+
+  if(page==='loading') return <div className="login-container"><div className="spinner"/></div>;
+
+  if(page==='login') return <LoginPage onLogin={handleLogin} onGoRegister={()=>setPage('register')}/>;
+  if(page==='register') return <RegisterPage onBack={()=>setPage('login')} onRegister={()=>setPage('login')}/>;
+
+  if(page==='dashboard' && session) {
+    switch(session.position) {
+      case '팀원': return <TeamMemberDashboard session={session} onLogout={handleLogout}/>;
+      case '팀장': return <TeamLeaderDashboard session={session} onLogout={handleLogout}/>;
+      case '국장': return <TeamLeaderDashboard session={session} onLogout={handleLogout} allTeams={true}/>;
+      case '관장': return <AdminDashboard session={session} onLogout={handleLogout}/>;
+      default: return <TeamMemberDashboard session={session} onLogout={handleLogout}/>;
+    }
+  }
+
+  return <LoginPage onLogin={handleLogin} onGoRegister={()=>setPage('register')}/>;
+}
+
+/* ─── Render ─── */
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <ToastProvider>
+    <App />
+  </ToastProvider>
+);
+</script>
+</body>
+</html>
