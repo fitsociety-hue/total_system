@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css" type="text/css"/>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
 <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
 <style>
@@ -601,6 +602,20 @@ const callGAS = async (action, data={}) => {
   }
 };
 
+/* GAS Data Access Helpers (Async & Dual Write Fallback) */
+const api = {
+  getStaff: async () => { const r = await callGAS('getStaff'); if(r.success && r.data) { setStaff(r.data); return r.data; } return getStaff(); },
+  saveStaff: async (data) => { setStaff(data); const r = await callGAS('saveStaff', {data}); return r.success; },
+  getAttendance: async () => { const r = await callGAS('getAttendance'); if(r.success && r.data) { setAttendanceLS(r.data); return r.data; } return getAttendance(); },
+  saveAttendance: async (data) => { setAttendanceLS(data); const r = await callGAS('saveAttendance', {data}); return r.success; },
+  getPrograms: async () => { const r = await callGAS('getPrograms'); if(r.success && r.data) { setPrograms(r.data); return r.data; } return getPrograms(); },
+  savePrograms: async (data) => { setPrograms(data); const r = await callGAS('savePrograms', {data}); return r.success; },
+  getCountRecords: async () => { const r = await callGAS('getCountRecords'); if(r.success && r.data) { setCountRecords(r.data); return r.data; } return getCountRecords(); },
+  saveCountRecords: async (data) => { setCountRecords(data); const r = await callGAS('saveCountRecords', {data}); return r.success; },
+  getDailyLogs: async () => { const r = await callGAS('getDailyLogs'); if(r.success && r.data) { setDailyLogs(r.data); return r.data; } return getDailyLogs(); },
+  saveDailyLogs: async (data) => { setDailyLogs(data); const r = await callGAS('saveDailyLogs', {data}); return r.success; }
+};
+
 /* ─── Toast Context ─── */
 const ToastContext = createContext();
 function ToastProvider({children}) {
@@ -654,6 +669,7 @@ function LoginPage({onLogin, onGoRegister}) {
   const [error, setError] = useState('');
   const [locked, setLocked] = useState(false);
   const [lockTime, setLockTime] = useState(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const {addToast} = useToast();
 
   useEffect(() => {
@@ -668,22 +684,25 @@ function LoginPage({onLogin, onGoRegister}) {
     }
   },[]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
     if(!name.trim()||!pin.trim()){setError('이름과 비밀번호를 입력하세요.');return;}
     if(!validatePin(pin)){setError('비밀번호는 숫자 4자리입니다.');return;}
     if(locked){setError('로그인이 잠겨있습니다. 잠시 후 다시 시도하세요.');return;}
 
-    const staff = getStaff();
+    setIsLoggingIn(true);
+    const staff = await api.getStaff();
     const user = staff.find(s=>s.name===name.trim()&&s.status==='재직중');
     if(!user){
       handleFailure();
       setError('등록되지 않은 이름이거나 재직 상태가 아닙니다.');
+      setIsLoggingIn(false);
       return;
     }
     if(!comparePin(user.pin, pin)){
       handleFailure();
       setError('비밀번호가 일치하지 않습니다.');
+      setIsLoggingIn(false);
       return;
     }
 
@@ -697,8 +716,9 @@ function LoginPage({onLogin, onGoRegister}) {
     setSession(session);
     // Update lastLoginAt
     const updated = staff.map(s=>s.id===user.id?{...s,lastLoginAt:now()}:s);
-    setStaff(updated);
+    await api.saveStaff(updated);
     addToast(`${user.name}님 환영합니다!`,'success');
+    setIsLoggingIn(false);
     onLogin(session);
   };
 
@@ -744,8 +764,8 @@ function LoginPage({onLogin, onGoRegister}) {
           <label className="form-label">비밀번호 (숫자 4자리)</label>
           <input className="form-input" type="password" inputMode="numeric" maxLength={4} placeholder="●●●●" value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,''))} disabled={locked} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
         </div>
-        <button className="btn btn-primary btn-lg w-full" style={{marginTop:'8px'}} onClick={handleLogin} disabled={locked}>
-          로그인
+        <button className="btn btn-primary btn-lg w-full" style={{marginTop:'8px'}} onClick={handleLogin} disabled={locked||isLoggingIn}>
+          {isLoggingIn ? '로그인 중...' : '로그인'}
         </button>
         <div style={{marginTop:'20px'}}>
           <button className="btn btn-secondary btn-sm" onClick={onGoRegister} style={{fontSize:'0.82rem'}}>
@@ -763,19 +783,23 @@ function LoginPage({onLogin, onGoRegister}) {
 function RegisterPage({onBack, onRegister}) {
   const [form, setForm] = useState({name:'',teamName:'지역연계팀',position:'팀원',pin:'',pinConfirm:''});
   const [error, setError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const {addToast} = useToast();
 
   const handleChange = (key,val) => setForm(prev=>({...prev,[key]:val}));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError('');
     if(!form.name.trim()){setError('이름을 입력하세요.');return;}
     if(!validatePin(form.pin)){setError('비밀번호는 숫자 4자리여야 합니다.');return;}
     if(form.pin!==form.pinConfirm){setError('비밀번호가 일치하지 않습니다.');return;}
 
-    const staff = getStaff();
+    setIsRegistering(true);
+    const staff = await api.getStaff();
     if(staff.find(s=>s.name===form.name.trim()&&s.status==='재직중')){
-      setError('이미 등록된 이름입니다.');return;
+      setError('이미 등록된 이름입니다.');
+      setIsRegistering(false);
+      return;
     }
 
     const newStaff = {
@@ -783,8 +807,9 @@ function RegisterPage({onBack, onRegister}) {
       position:form.position, pin:formatPin(form.pin),
       status:'재직중', createdAt:now(), lastLoginAt:null
     };
-    setStaff([...staff, newStaff]);
+    await api.saveStaff([...staff, newStaff]);
     addToast('회원가입이 완료되었습니다.','success');
+    setIsRegistering(false);
     onRegister();
   };
 
@@ -827,8 +852,10 @@ function RegisterPage({onBack, onRegister}) {
           </div>
         </div>
         <div className="flex gap-2" style={{marginTop:'8px'}}>
-          <button className="btn btn-secondary" onClick={onBack}>← 뒤로</button>
-          <button className="btn btn-primary" onClick={handleSubmit} style={{flex:1}}>가입하기</button>
+          <button className="btn btn-secondary" onClick={onBack} disabled={isRegistering}>← 뒤로</button>
+          <button className="btn btn-primary" onClick={handleSubmit} style={{flex:1}} disabled={isRegistering}>
+            {isRegistering ? '처리 중...' : '가입하기'}
+          </button>
         </div>
       </div>
     </div>
@@ -1040,8 +1067,9 @@ function AttendanceTab({session}) {
     addToast('전체 출석으로 선택되었습니다.','info');
   };
 
-  const handleSave = () => {
-    let allAtt = getAttendance().filter(a=>!(a.programId===selProgram && a.date===selDate));
+  const handleSave = async () => {
+    let allAtt = await api.getAttendance();
+    allAtt = allAtt.filter(a=>!(a.programId===selProgram && a.date===selDate));
     const prog = programs.find(p=>p.id===selProgram);
     Object.entries(records).forEach(([userId, status])=>{
       const user = users.find(u=>u.id===userId);
@@ -1051,7 +1079,7 @@ function AttendanceTab({session}) {
         date:selDate, status, synced:false, createdAt:now()
       });
     });
-    setAttendanceLS(allAtt);
+    await api.saveAttendance(allAtt);
     addToast('출석이 저장되었습니다.','success');
   };
 
@@ -1142,12 +1170,12 @@ function CountInputTab({session}) {
 
   const resetForm = () => {setForm({count:'',people:'',extendedPeople:'',note:''});setEditId(null);};
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if(!selProgram){addToast('프로그램을 선택하세요.','error');return;}
     if(!form.count || Number(form.count)<=0){addToast('건수를 1 이상 입력하세요.','error');return;}
 
     const prog = programs.find(p=>p.id===selProgram);
-    let all = getCountRecords();
+    let all = await api.getCountRecords();
 
     if(editId) {
       all = all.map(c=>c.id===editId?{...c,count:Number(form.count),people:form.people?Number(form.people):null,extendedPeople:form.extendedPeople?Number(form.extendedPeople):null,note:form.note,updatedAt:now()}:c);
@@ -1160,7 +1188,7 @@ function CountInputTab({session}) {
         note:form.note, synced:false, createdAt:now()
       });
     }
-    setCountRecords(all);
+    await api.saveCountRecords(all);
     addToast(editId?'수정되었습니다.':'저장되었습니다.','success');
     resetForm();
   };
@@ -1171,8 +1199,9 @@ function CountInputTab({session}) {
     setForm({count:String(rec.count),people:rec.people!=null?String(rec.people):'',extendedPeople:rec.extendedPeople!=null?String(rec.extendedPeople):'',note:rec.note||''});
   };
 
-  const handleDelete = (id) => {
-    setCountRecords(getCountRecords().filter(c=>c.id!==id));
+  const handleDelete = async (id) => {
+    const all = await api.getCountRecords();
+    await api.saveCountRecords(all.filter(c=>c.id!==id));
     addToast('삭제되었습니다.','success');
   };
 
@@ -1413,11 +1442,12 @@ function DailyLogEditor({log, session, onBack, onSave}) {
     setData(d=>({...d,workItems:d.workItems.filter((_,i)=>i!==idx)}));
   };
 
-  const handleSave = (status) => {
+  const handleSave = async (status) => {
     const updated = {...data, status, updatedAt:now()};
-    let allLogs = getDailyLogs().filter(l=>l.id!==data.id);
+    let allLogs = await api.getDailyLogs();
+    allLogs = allLogs.filter(l=>l.id!==data.id);
     allLogs.push(updated);
-    setDailyLogs(allLogs);
+    await api.saveDailyLogs(allLogs);
     onSave();
   };
 
@@ -2048,11 +2078,11 @@ function TeamProgramsView({teamName, session}) {
 
   const resetForm = () => setForm({name:'',category:'',subCategory:'',recordType:'attendance',targetCount:'',staffId:staff[0]?.id||'',status:'운영중'});
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if(!form.name.trim()){addToast('프로그램명을 입력하세요.','error');return;}
     if(!form.staffId){addToast('담당자를 선택하세요.','error');return;}
 
-    let all = getPrograms();
+    let all = await api.getPrograms();
     if(editProg) {
       all = all.map(p=>p.id===editProg.id?{...p,...form,targetCount:Number(form.targetCount)||0,updatedAt:now()}:p);
     } else {
@@ -2061,7 +2091,7 @@ function TeamProgramsView({teamName, session}) {
         teamName, createdAt:now()
       });
     }
-    setPrograms(all);
+    await api.savePrograms(all);
     setShowAdd(false);
     setEditProg(null);
     resetForm();
@@ -2074,8 +2104,9 @@ function TeamProgramsView({teamName, session}) {
     setShowAdd(true);
   };
 
-  const handleDelete = (id) => {
-    setPrograms(getPrograms().filter(p=>p.id!==id));
+  const handleDelete = async (id) => {
+    const all = await api.getPrograms();
+    await api.savePrograms(all.filter(p=>p.id!==id));
     addToast('프로그램이 삭제되었습니다.','success');
   };
 
